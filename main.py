@@ -1,11 +1,24 @@
 """Linear assignment example."""
 from ortools.graph.python import min_cost_flow
+import csv
+import tkinter as tk
+from tkinter import filedialog
 
 
 def main():
     """Solving an Assignment Problem with MinCostFlow."""
     # Instantiate a SimpleMinCostFlow solver.
     smcf = min_cost_flow.SimpleMinCostFlow()
+
+    root = tk.Tk()
+    root.withdraw()
+
+    input("Press any button to choose a file: ")
+
+    file_path = filedialog.askopenfilename()
+    csvfile = open(file_path)
+    reader = csv.reader(csvfile)
+    
 
     # Define the directed graph for the flow.
     start_nodes = (
