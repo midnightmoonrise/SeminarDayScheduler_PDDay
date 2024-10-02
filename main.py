@@ -28,7 +28,9 @@ def main():
     num_students = len(input_data_lines)
     num_classes = len(classes)
 
-
+    for student in reader:
+        for period in range(6):
+            preferences = student[1+period*5:6+period*5]
 
     for i in range(len(input_data_lines)):
         line = input_data_lines[i].split(",")
