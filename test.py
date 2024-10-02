@@ -11,6 +11,8 @@ file = open(file_path)
 
 reader = csv.reader(file)
 
+print([x for x in range(10)])
+
 for line in reader:
     print(line[0] + ": " + str(line[1:]))
 

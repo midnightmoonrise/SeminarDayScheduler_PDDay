@@ -5,7 +5,7 @@ import tkinter as tk
 from tkinter import filedialog
 
 
-def main():
+def main(period):
     """Solving an Assignment Problem with MinCostFlow."""
     # Instantiate a SimpleMinCostFlow solver.
     smcf = min_cost_flow.SimpleMinCostFlow()
@@ -18,24 +18,16 @@ def main():
     file_path = filedialog.askopenfilename()
     csvfile = open(file_path)
     reader = csv.reader(csvfile)
-    
 
     # Define the directed graph for the flow.
     students = []
     classes = ["skibidi seminar", "business seminar", "cube seminar", "orange seminar", "cheese seminar"]
-
-    input_data_lines = ["doilus@stage.com,skibidi seminar,business seminar,cheese seminar,orange seminar,cube seminar"]
-    num_students = len(input_data_lines)
+    num_students = 0
     num_classes = len(classes)
-
-    for student in reader:
-        for period in range(6):
-            preferences = student[2+period*5:6+period*5]
-        
-
+    student_index = 0
 
     start_nodes = (
-        [0, 0, 0, 0] + [1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4] + [5, 6, 7, 8]
+        
     )
     end_nodes = (
         [1, 2, 3, 4] + [5, 6, 7, 8, 5, 6, 7, 8, 5, 6, 7, 8, 5, 6, 7, 8] + [9, 9, 9, 9]
@@ -48,6 +40,14 @@ def main():
         + [90, 76, 75, 70, 35, 85, 55, 65, 125, 95, 90, 105, 45, 110, 95, 115]
         + [0, 0, 0, 0]
     )
+
+
+    for student in reader:
+        num_students += 1
+        start_nodes += [0]
+        end_nodes += [student_index]
+        for preference in range(5):
+            
 
     source = 0
     sink = 9
@@ -86,4 +86,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    for period in range(6):
+        main(period)
