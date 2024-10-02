@@ -30,17 +30,7 @@ def main():
 
     for student in reader:
         for period in range(6):
-            preferences = student[1+period*5:6+period*5]
-
-    for i in range(len(input_data_lines)):
-        line = input_data_lines[i].split(",")
-        pref_class_ids = []
-        for j in range(len(line)):
-            #ensure that it's not the email that gets sent
-            if j > 0:
-                # find ID of class that student wants
-                # insert at preference
-                pref_class_ids[j - 1] = classes.index(line[j])
+            preferences = student[2+period*5:6+period*5]
         
 
 
