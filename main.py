@@ -4,8 +4,36 @@ import csv
 import tkinter as tk
 from tkinter import filedialog
 
+prefrences_csv = 0
+preferences_reader = 0
+
+studenttograde_csv = 0
+studenttograde_reader = 0
+
+classes_csv = 0
+classes_reader = 0
+
+def csv_processing():
+
+    global preferences_csv, preferences_reader, studenttograde_csv, studenttograde_reader, classes_csv, classes_reader
+
+    input("Press any button to select the file with the student preferences for each seminar")
+
+    preferences_csv = filedialog.askopenfilename()
+    preferences_reader = csv.reader(preferences_csv)
+
+    preferences_csv = "TO BE HARDCODED"
+    preferences_reader = csv.reader(preferences_csv)
+
+    input("Press any button to select the file with all the avaliable seminars and their capacities.")
+
+    preferences_csv = filedialog.askopenfilename()
+    preferences_reader = csv.reader(preferences_csv)
 
 def main(period):
+
+    global preferences_reader
+
     """Solving an Assignment Problem with MinCostFlow."""
     # Instantiate a SimpleMinCostFlow solver.
     smcf = min_cost_flow.SimpleMinCostFlow()
@@ -13,10 +41,10 @@ def main(period):
     root = tk.Tk()
     root.withdraw()
 
-    input("Press any button to choose a file: ")
+    # input("Press any button to choose a file: ")
 
-    file_path = filedialog.askopenfilename()
-    csvfile = open(file_path)
+    # file_path = filedialog.askopenfilename()
+    csvfile = open("mock.csv")
     reader = csv.reader(csvfile)
 
     # Define the directed graph for the flow.
@@ -41,7 +69,7 @@ def main(period):
 
     # tldr loop through this shit twice because of the two costs thingy
     class_costs = [0] * num_classes
-    class_costs += [-1000000] * num_classes
+    class_costs += [-10000000000] * num_classes
     # priority to fill minimum
     
 
@@ -61,7 +89,7 @@ def main(period):
     for i in range(num_classes):
         class_capacities[i] -= min_per_class
 
-    for student in reader:
+    for student in preferences_reader:
         student_index += 1
         # create edge between source and students
         source_start_nodes += [0]
@@ -77,7 +105,7 @@ def main(period):
             student_start_nodes += [num_classes + student_index]
             student_end_nodes += [class_id + 1]
             # j is cost, weighted by weight. heavier means more influence
-            weight = 1
+            weight = 10000 - student_index
             student_costs += [weight * j]
 
         
@@ -130,8 +158,8 @@ def main(period):
         for arc in range(smcf.num_arcs()):
             if smcf.flow(arc) > 0 and smcf.tail(arc) != source and smcf.head(arc) != sink:
                 print(
-                    "Node %d assigned to node %d.  Cost = %d, Flow = %d"
-                    % (smcf.tail(arc), smcf.head(arc), smcf.unit_cost(arc), smcf.flow(arc))
+                    "Student %d assigned to Class %s.  Cost = %d, Flow = %d"
+                    % (smcf.tail(arc) - num_classes, classes[smcf.head(arc) - 1], smcf.unit_cost(arc), smcf.flow(arc))
                 )
     else:
         print("There was an issue with the min cost flow input.")
