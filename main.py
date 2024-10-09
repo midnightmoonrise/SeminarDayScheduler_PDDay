@@ -13,9 +13,12 @@ studenttograde_reader = 0
 classes_csv = 0
 classes_reader = 0
 
+roomclass_csv = 0
+roomclass_reader = 0
+
 def csv_processing():
 
-    global preferences_csv, preferences_reader, studenttograde_csv, studenttograde_reader, classes_csv, classes_reader
+    global preferences_csv, preferences_reader, studenttograde_csv, studenttograde_reader, classes_csv, classes_reader, roomclass_csv, roomclass_reader
 
     input("Press any button to select the file with the student preferences for each seminar")
 
@@ -29,6 +32,11 @@ def csv_processing():
 
     preferences_csv = filedialog.askopenfilename()
     preferences_reader = csv.reader(preferences_csv)
+
+    input("Press any button to select the file with the rooms that classes will be in.")
+
+    roomclass_csv = filedialog.askopenfilename()
+    roomclass_reader = csv.reader(preferences_csv)
 
 def main(period):
 
@@ -44,7 +52,7 @@ def main(period):
     # input("Press any button to choose a file: ")
 
     # file_path = filedialog.askopenfilename()
-    csvfile = open("mock.csv")
+    csvfile = filedialog.askopenfilename()#open("mock.csv")
     reader = csv.reader(csvfile)
 
     # Define the directed graph for the flow.
@@ -69,8 +77,10 @@ def main(period):
     class_start_nodes = [x+1 for x in range(num_classes)] * 2
 
     # tldr loop through this shit twice because of the two costs thingy
-    class_costs = [0] * num_classes
+
     class_costs += [-10000000000] * num_classes
+    class_costs = [0] * num_classes
+    
     # priority to fill minimum
     
 
@@ -87,19 +97,27 @@ def main(period):
     emails = []
 
     
-
+    # the malicious
+    class_capacities += [min_per_class] * num_classes
     # subtract off MIN VAL to make sure all capacities are as intended
     for i in range(num_classes):
-        class_capacities[i] -= min_per_class
+        if class_capacities[i] >= min_per_class:
+            class_capacities[i] -= min_per_class
+        else:
+            # set corresp. to 0
+            class_capacities[i + num_classes] = class_capacities[i]
+            class_capacities[i] = 0
+    
+    
 
-    for student in preferences_reader:
+    for student in reader:
         student_index += 1
         # create edge between source and students
         source_start_nodes += [0]
         source_end_nodes += [num_classes + student_index]
         source_costs += [0]
         senior_flag = False
-        emails += [student[0]]
+        emails += [student[1]]
 
         for j in range(5):
             # find ID of class that student wants
@@ -125,8 +143,7 @@ def main(period):
     source_capacities = [1] * len(source_start_nodes)
     student_capacities = [1] * len(student_start_nodes)
 
-    # the malicious
-    class_capacities += [min_per_class] * num_classes
+    
 
 
     start_nodes = (
