@@ -16,6 +16,9 @@ d = {}
 for line in reader:
     d[line[0]] = line[1]
 
+for line in reader:
+    print(line)
+
 print(d)
 
 file.close()

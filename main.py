@@ -8,6 +8,12 @@ preferences_reader = 0
 
 studenttograde = {}
 
+emails = []
+p1 = []
+p2 = []
+p3 = []
+p4 = []
+
 classes_reader = 0
 
 classes = []
@@ -26,12 +32,12 @@ def csv_processing():
     preferences_reader = csv.reader(preferences_csv)
 
     studenttograde_csv = "TO BE HARDCODED"
-    studenttograde_reader = csv.reader(preferences_csv)
+    studenttograde_reader = csv.reader(studenttograde_csv)
 
     input("Press any button to select the file with all the avaliable seminars and their capacities.")
 
     classes_csv = filedialog.askopenfilename()
-    classes_reader = csv.reader(preferences_csv)
+    classes_reader = csv.reader(classes_csv)
 
     for aclass in classes_reader:
         classes += aclass[0]
@@ -50,7 +56,7 @@ def csv_processing():
 
 def main(period):
 
-    global preferences_reader, classes, class_capacities, studenttograde
+    global preferences_reader, classes, class_capacities, studenttograde, emails, p1, p2, p3, p4
 
     """Solving an Assignment Problem with MinCostFlow."""
     # Instantiate a SimpleMinCostFlow solver.
@@ -89,8 +95,6 @@ def main(period):
 
     min_per_class = 1
 
-    emails = []
-
     
     # the malicious
     class_capacities += [min_per_class] * num_classes
@@ -105,13 +109,13 @@ def main(period):
     
     
 
-    for student in reader:
+    for student in preferences_reader:
         student_index += 1
         # create edge between source and students
         source_start_nodes += [0]
         source_end_nodes += [num_classes + student_index]
         source_costs += [0]
-        senior_flag = False
+        senior_flag = (studenttograde[student[1].split("@")[0]] == 12)
         emails += [student[1]]
 
         for j in range(5):
