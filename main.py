@@ -59,13 +59,10 @@ def csv_processing():
     input("Press any button to select the file with the student preferences for each seminar")
     
     preferences_csv = open(filedialog.askopenfilename())
-<<<<<<< Updated upstream
     #preferences_reader = csv.reader(preferences_csv)
     
-=======
     preferences_reader = csv.reader(preferences_csv)
     root.destroy()
->>>>>>> Stashed changes
 
     input("Press any button to select the file with student grade info.")
     studenttograde_csv = open(filedialog.askopenfilename())
@@ -246,12 +243,9 @@ def main(period):
 
 
 if __name__ == "__main__":
-<<<<<<< Updated upstream
-=======
 
     tkwindowthread()
 
->>>>>>> Stashed changes
     csv_processing()
 
     for period in range(num_period):
