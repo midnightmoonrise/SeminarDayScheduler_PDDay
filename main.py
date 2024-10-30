@@ -6,14 +6,19 @@ from tkinter import filedialog
 from functools import partial 
 import os
 
+# TODO: Implement lunches, remove duplicate prefrences/assign randomly, output to pdf, make the gui nicer (QT?)
+
 window = tk.Tk()
 
 output_directory = tk.StringVar()
+output_directory.set(os.getcwd() + "\\Seminar Day Schedules")
 
 csv_files = [[tk.StringVar(), False] for _ in range(3)]
 
 preferences_reader = 0
 preferences_csv = 0
+
+myarray = [[] * 3]
 
 studenttograde = {}
 
@@ -172,6 +177,14 @@ def csv_processing():
     reset()
 
     global num_period, preferences_csv, preferences_reader, studenttograde, classes_reader, classes, class_capacities, emails, master_list, schedules, csv_files
+
+    try:
+        os.mkdir(output_directory.get())
+    except FileExistsError:
+        pass
+    except PermissionError:
+        status.log("Cannot create/open target directory")
+        return
     
     for i in range(3):
         try:
@@ -394,6 +407,9 @@ def output():
     location = output_directory.get()
 
     for i in range(len(emails)):
+
+        name = emails[i][:str(emails[i]).find("@gmail.com")]
+
         fin = []
         for j in range(num_period):
             fin += [str(classes[schedules[j][i]])]
@@ -407,9 +423,9 @@ def output():
             status.log("Could not create output folders")
             return
 
-        status.log("Creating schedule for student " + str(i))
+        status.log("Creating schedule for student " + name)
 
-        f = open(f"{location}\\Students\\Student{i+1}.csv","w")
+        f = open(f"{location}\\Students\\{name}Schedule.csv","w")
         f.write(",".join(fin))
         f.close()
 
