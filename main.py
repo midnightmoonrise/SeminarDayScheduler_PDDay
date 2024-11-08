@@ -6,7 +6,17 @@ from tkinter import filedialog
 from functools import partial 
 import os
 
-# TODO: Implement lunches, remove duplicate prefrences/assign randomly, output to pdf, make the gui nicer (QT?)
+# TODO: Implement lunches, remove duplicate prefrences/assign randomly, output to pdf, make the gui nicer (kivy or wxpython or qt]), handle students not responding
+
+# for lunches:
+# create a class node period 4 and 5 that takes (half?) of the students with weight 0 going to it, any students who choose or are selected for lunch
+# will only have an edge to lunch at cost 0. essentially overwrite their choices
+
+# duplicate preferences can be done during preproccesing
+
+# students not responding can be dealt with in pre or post processing
+# pre-processing would be adding missing students with random preferences
+# post-processing would be adding missing students into any avaliable seminars
 
 window = tk.Tk()
 
@@ -77,7 +87,7 @@ def get_file_name(index):
 
     var = csv_files[index]
     
-    file_path = filedialog.askopenfilename()
+    file_path = filedialog.askopenfilename(filetypes=[".csv"])
     if file_path[-4:] != ".csv":
         var[0].set("Please select a .csv file")
         var[1] = False
@@ -194,7 +204,6 @@ def csv_processing():
 
     try:
         preferences_csv = open(csv_files[0][0].get())
-        
         preferences_reader = csv.reader(preferences_csv)
 
         studenttograde_csv = open(csv_files[1][0].get())
@@ -230,6 +239,24 @@ def csv_processing():
             for x, capacity in enumerate(aclass[1:]):
                 class_capacities[x] += [int(capacity)]
                 period_capacities[x] += int(capacity)
+
+        lunches = [
+            ["First Lunch", 0, 0, 300, 0],
+            ["Second Lunch", 0, 0, 300, 0]
+        ]
+
+        for lunch in lunches:
+            classes += lunch[0]
+            for x, capacity in enumerate(lunch[1:]):
+                class_capacities[x] += [capacity]
+
+        for student in preferences_csv:
+            for period in range(num_period):
+                prefs = []
+                for pref in range(5):
+                    id = classes.index(pref)
+                    try:
+                        prefs.index
 
         for period in range(4):
             try:
