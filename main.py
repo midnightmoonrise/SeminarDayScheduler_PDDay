@@ -202,7 +202,7 @@ def tkwindowthread():
 
 
     #wip
-    print("wip")
+    # print("wip")
 
     window.mainloop()
 
