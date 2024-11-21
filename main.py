@@ -1,7 +1,7 @@
 """Linear assignment example."""
 from ortools.graph.python import min_cost_flow
 import csv
-import tkinter as tk
+import tkinter as tk    
 from tkinter import filedialog
 from functools import partial 
 import random
@@ -131,7 +131,7 @@ def tkwindowthread():
         button = tk.Button(master = window, text="Select "+button_labels[i], command=partial(get_file_name, i))
         button.grid(row=i, column=0)
 
-        label = tk.Label(master=window, textvariable=csv_files[i][0])
+        label = tk.Label(master=window, textvariable=csv_files[i][0], )
         label.grid(row=i, column=1)
     
     button = tk.Button(master = window, text="Select Output Folder", command=get_output_folder)
@@ -226,6 +226,8 @@ def csv_processing():
         except AssertionError:
             status.log()
 
+
+    # break try catch statements
     try:
         preferences_csv = open(csv_files[0][0].get())
         preferences_reader = csv.reader(preferences_csv)
