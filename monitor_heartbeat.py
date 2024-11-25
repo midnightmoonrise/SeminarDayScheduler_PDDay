@@ -5,8 +5,8 @@ import os
 import signal
 
 request_period_seconds = 1
-heartbeat_timeout_seconds = 10
-last_check_in_time = time.time()
+heartbeat_timeout_seconds = 3
+last_check_in_time = 0
 
 def monitor_heartbeat():
     global last_check_in_time, request_period_seconds, heartbeat_timeout_seconds
@@ -14,7 +14,7 @@ def monitor_heartbeat():
     while True:
         time.sleep(request_period_seconds)
         print('heartbeat')
-        if time.time() - last_check_in_time >= heartbeat_timeout_seconds:
+        if last_check_in_time != 0 and (time.time() - last_check_in_time >= heartbeat_timeout_seconds):
             terminate_app()
             break
 
