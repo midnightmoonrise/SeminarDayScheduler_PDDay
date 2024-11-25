@@ -5,7 +5,7 @@ import os
 import signal
 
 request_period_seconds = 1
-heartbeat_timeout_seconds = 2
+heartbeat_timeout_seconds = 10
 last_check_in_time = time.time()
 
 def monitor_heartbeat():
