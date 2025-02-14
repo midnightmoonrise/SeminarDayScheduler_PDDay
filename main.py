@@ -35,7 +35,7 @@ emails = []
 schedules = []
 
 classes_reader = 0
-num_period = 4
+num_period = 5
 
 classes = []
 class_capacities = [[] for _ in range(num_period)]
@@ -83,7 +83,7 @@ def reset():
     schedules = []
 
     classes_reader = 0
-    num_period = 4
+    num_period = 5
 
     classes = []
     class_capacities = [[] for _ in range(num_period)]
@@ -121,7 +121,7 @@ def csv_processing():
         lunch_capacities = [0, 0]
 
         for student in studenttograde_reader:
-            studenttograde[student[0]] = student[1]
+            studenttograde[student[0]] = int(student[1])
             emails += [student[0]]
             if int(student[1]) < 11:
                 lunch_capacities[0] += 1
@@ -135,7 +135,7 @@ def csv_processing():
         classes_csv = open(csv_file_paths['seminars'])
         classes_reader = csv.reader(classes_csv)
 
-        period_capacities = [0, 0, 0, 0]
+        period_capacities = [0, 0, 0, 0, 0]
 
         for aclass in classes_reader:
             print(aclass)
@@ -169,7 +169,7 @@ def csv_processing():
                 flag = False
 
         for name in missing_students:
-            student = ["time", name] + [classes[random.randint(0, len(classes) - 3)] for _ in range(20)]
+            student = ["time", name] + [classes[random.randint(0, len(classes) - 3)] for _ in range(5*num_period)]
 
             if studenttograde[name] > 10:
                 lunch_capacities[1] -= 1
@@ -188,8 +188,8 @@ def csv_processing():
              
 
         lunches = [
-            ["First Lunch", 0, 0, lunch_capacities[0], 0],
-            ["Second Lunch", 0, 0, 0, lunch_capacities[1]]
+            ["First Lunch", 0, 0, 0, lunch_capacities[0], 0],
+            ["Second Lunch", 0, 0, 0, 0, lunch_capacities[1]]
         ]
 
         for lunch in lunches:
@@ -199,7 +199,7 @@ def csv_processing():
         
         
 
-        for period in range(4):
+        for period in range(num_period):
             try:
                 assert (period_capacities[period] >= num_students)
             except AssertionError:
@@ -309,10 +309,10 @@ def main(period):
                 randomval = random.randint(0, len(temp) - 1)
                 student[2 + a + period * 5] = temp[randomval]
 
-        if period == 2 and int(studenttograde[student[1]]) < 11:
+        if period == 3 and int(studenttograde[student[1]]) < 11:
             for pref in range(5):
                 student[2 + pref + 2 * 5] = "First Lunch"
-        elif period == 3 and int(studenttograde[student[1]]) > 10:
+        elif period == 4 and int(studenttograde[student[1]]) > 10:
             for pref in range(5):
                 student[2 + pref + 3 * 5] = "Second Lunch"
 
@@ -407,6 +407,14 @@ def output():
 
     location = output_directory
 
+    try:
+        os.mkdir(location + "\\Students")
+    except FileExistsError:
+        pass
+    except PermissionError:
+        status.log("Could not create output folders")
+        return
+
     for i in range(len(emails)):
 
         name = emails[i][:str(emails[i]).find("@gmail.com")]
@@ -415,14 +423,6 @@ def output():
         for j in range(num_period):
             fin += [str(classes[schedules[j][i]])]
         print(emails[i], fin)
-
-        try:
-            os.mkdir(location + "\\Students")
-        except FileExistsError:
-            pass
-        except PermissionError:
-            status.log("Could not create output folders")
-            return
 
         status.log("Creating schedule for student " + name)
 
