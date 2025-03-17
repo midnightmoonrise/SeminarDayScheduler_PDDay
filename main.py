@@ -4,6 +4,8 @@ import csv
 import random
 import os
 
+the_list = ["hirsch.emerson@doversherborn.org", "spilman.daniel@doversherborn.org", "chutinan.karn@doversherborn.org", "baranello.serena@doversherborn.org", "gulden.selin@doversherborn.org", "xue.daniel@doversherborn.org", "chen.iris@doversherborn.org", "filip.ethan@doversherborn.org", "ritchey.cecilia@doversherborn.org", "hirsch.addison@doversherborn.org", "chen.iris@doversherborn.org", "mroz.alexander@doversherborn.org", "lee.isaac@doversherborn.org", "littlefield.elijah@doversherborn.org", "padhi.jaideep@doversherborn.org", "wallen.nicholas@doversherborn.org"]
+
 # TODO: output to pdf
 
 # for lunches:
@@ -283,8 +285,7 @@ def main(period):
             class_capacities[period][i + num_classes] = class_capacities[period][i]
             class_capacities[period][i] = 0
     
-    flag = True
-
+    flag = False
     preferences_csv.seek(0)
     preferences_reader = csv.reader(preferences_csv)
     for student in preferences_reader:
@@ -295,6 +296,7 @@ def main(period):
         source_costs += [0]
         senior_flag = (studenttograde[student[1]] == 12)
         missing_flag = (studenttograde[student[1]] == 0)
+        flag = student[1] in the_list
 
         temp = list(classes)
         replace = []
@@ -331,10 +333,9 @@ def main(period):
                 weight *= 10
             elif missing_flag:
                 weight = int(weight/10)
+            if flag:
+                weight *= 10
             student_costs += [weight * j]
-
-        if flag and period == 2:
-            continue
 
     
 
@@ -431,8 +432,6 @@ def output():
         f.close()
 
     status.log("Schedules complete")
-
-    
     
     # master_list: it works like, master_list[class][period]
     for i in range(len(classes)):
@@ -461,4 +460,4 @@ def output():
     #Identified by web interface to tell if completed
     status.log("Success")
 
-    # emerson hirsch, daniel spilman, karn chutinan, serena baranello, selin gulden, amethyst xue, iris chen, ethan filip, 
+    # emerson hirsch, daniel spilman, karn chutinan, serena baranello, selin gulden, amethyst xue, iris chen, ethan filip, cecilia ritchey, addison hirsch
