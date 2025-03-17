@@ -4,9 +4,18 @@ import csv
 import random
 import os
 
-the_list = ["hirsch.emerson@doversherborn.org", "spilman.daniel@doversherborn.org", "chutinan.karn@doversherborn.org", "baranello.serena@doversherborn.org", "gulden.selin@doversherborn.org", "xue.daniel@doversherborn.org", "chen.iris@doversherborn.org", "filip.ethan@doversherborn.org", "ritchey.cecilia@doversherborn.org", "hirsch.addison@doversherborn.org", "chen.iris@doversherborn.org", "mroz.alexander@doversherborn.org", "lee.isaac@doversherborn.org", "littlefield.elijah@doversherborn.org", "padhi.jaideep@doversherborn.org", "wallen.nicholas@doversherborn.org"]
+the_list = [
+    "Emerson Hirsch", "Daniel Spilman", "Jacob Spilman", "Karn Chutinan", "Serena Baranello", "Selin Gulden", "Daniel Xue", "Iris Chen", "Ethan Filip", "Cecilia Ritchey", "Addison Hirsch", "Alexander Mroz", "Isaac Lee",
+    "Elijah Littlefield", "Jaideep Padhi", "Nicholas Wallen", "Kylie Ozerdam", "Selena Pu", "Kaelyn Wu", "Ryan Li", "Gabriel Goldstein", "Felix Giesen", "Eric Liang", "Devon Ntiforo"
+]
+
+for x in range(len(the_list)):
+    first, last = the_list[x].split(" ")
+    the_list[x] = last.lower() + "." + first.lower() + "@doversherborn.org"
+print(the_list)
 
 # TODO: output to pdf
+# TODO: some output thing
 
 # for lunches:
 # create a class node period 3 and 4 that takes (half?) of the students with weight 0 going to it, any students who choose or are selected for lunch
@@ -28,8 +37,6 @@ csv_file_paths = {}
 
 preferences_reader = 0
 preferences_csv = 0
-
-myarray = [[] * 3]
 
 studenttograde = {}
 
