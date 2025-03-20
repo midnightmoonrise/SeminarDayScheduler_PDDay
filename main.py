@@ -316,9 +316,10 @@ def main(period):
         grade = studenttograde[student[1]]
         temp_prefs = list(student)
         cutoff = 15
-        offset = 20
+        offset = 0
         if grade > 10.5:
             cutoff = 10
+            offset = 20
         for i in range(20):
             if i == cutoff:
                 offset += 5
