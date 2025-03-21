@@ -12,14 +12,18 @@ the_list = [
 for x in range(len(the_list)):
     first, last = the_list[x].split(" ")
     the_list[x] = last.lower() + "." + first.lower() + "@doversherborn.org"
-print(the_list)
+
+student_led_seminar_students = [
+    "Jacob Spilman"
+]
+
+for x in range(len(student_led_seminar_students)):
+    first, last = student_led_seminar_students[x].split(" ")
+    student_led_seminar_students[x] = last.lower() + "." + first.lower() + "@doversherborn.org"
 
 # TODO: output to pdf
 # TODO: some output thing
 # TODO: STUDENT LED SEMINAR
-# TODO: Format the seminar data
-
-# TODO: class & room rather than class & capacity
 
 # for lunches:
 # create a class node period 3 and 4 that takes (half?) of the students with weight 0 going to it, any students who choose or are selected for lunch
@@ -510,6 +514,9 @@ def output():
         for j in range(num_period):
             fin += [str(classes[schedules[j][i]])]
         print(emails[i], fin)
+
+        if emails[i] in student_led_seminar_students:
+            fin[4] = classes.index("Student Run Seminar - Arcade Extravaganza")
 
         status.log("Creating schedule for student " + name)
 
