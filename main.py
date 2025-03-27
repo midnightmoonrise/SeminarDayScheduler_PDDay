@@ -3,10 +3,11 @@ from ortools.graph.python import min_cost_flow
 import csv 
 import random
 import os
+from copy import deepcopy
 
 the_list = [
     "Emerson Hirsch", "Daniel Spilman", "Jacob Spilman", "Karn Chutinan", "Serena Baranello", "Selin Gulden", "Daniel Xue", "Iris Chen", "Ethan Filip", "Cecilia Ritchey", "Addison Hirsch", "Alexander Mroz", "Isaac Lee",
-    "Elijah Littlefield", "Jaideep Padhi", "Nicholas Wallen", "Kylie Ozerdam", "Selena Pu", "Kaelyn Wu", "Ryan Li", "Gabriel Goldstein", "Felix Giesen", "Eric Liang", "Devon Ntiforo"
+    "Elijah Littlefield", "Jaideep Padhi", "Nicholas Wallen", "Kylie Ozerdam", "Selena Pu", "Kaelyn Wu", "Ryan Li", "Gabriel Goldstein", "Felix Giesen", "Eric Liang", "Devon Ntiforo", "Julia Ritchey", "Siming Chen"
 ]
 
 for x in range(len(the_list)):
@@ -14,7 +15,8 @@ for x in range(len(the_list)):
     the_list[x] = last.lower() + "." + first.lower() + "@doversherborn.org"
 
 student_led_seminar_students = [
-    "Jacob Spilman"
+    "Jacob Spilman", "Nathan Zeng", "Vivian Kamphaus", "Alexander Mroz", "Patrick Driscoll", "Simon Hart", "Joshua Dias", "Gabriella Schroeder", "Dagny Abbett", "Nora Olson", "james davies", "tessa correll",
+    "Armaan Tamber", "Cillian Moss", "Felix Giesen" 
 ]
 
 for x in range(len(student_led_seminar_students)):
@@ -52,61 +54,66 @@ preferences_reader = 0
 preferences_csv = 0
 
 studenttograde = {}
+emailtoname = {}
 roomtocapacity = {
-"    105",	22,
-"106",	22,
-"107",	22,
-"110A",	22,
-"110B",	22,
-"114",	22,
-"115",	22,
-"116",	22,
-"119",	22,
-"120",	22,
-"121",	22,
-"122",	22,
-"123",	22,
-"202",	22,
-"203",	22,
-"204",	22,
-"205",	22,
-"206",	22,
-"207",	22,
-"213",	22,
-"214",	22,
-"215",	22,
-"216",	22,
-"220",	22,
-"221",	22,
-"222",	22,
-"223",	22,
-"224",	22,
-"225",	22,
-"226",	22,
-"227",	22,
-"103 S",	22,
-"105 S",	22,
-"106 S",	22,
-"107 S",	22,
-"109 S",	22,
-"112 S",	22,
-"114 S",	22,
-"Auditorium",	125,
-"Band Room",	75,
-"Fitness/Weight Room",	18,
-"HS Gym",	75,
-"Library",	48,
-"MS Music Suite room 201",	60
+    "0":0,
+"105":22,
+"106":22,
+"107":22,
+"110A":22,
+"110B":22,
+"114":22,
+"115":22,
+"116":22,
+"119":22,
+"120":22,
+"121":22,
+"122":22,
+"123":22,
+"202":22,
+"203":22,
+"204":22,
+"205":22,
+"206":22,
+"207":22,
+"213":22,
+"214":22,
+"215":22,
+"216":22,
+"220":22,
+"221":22,
+"222":22,
+"223":22,
+"224":22,
+"225":22,
+"226":22,
+"227":22,
+"103 S":22,
+"105 S":22,
+"106 S":22,
+"107 S":22,
+"109 S":22,
+"112 S":22,
+"114 S":22,
+"Auditorium":125,
+"Band Room":75,
+"Fitness/Weight Room":18,
+"HS Gym":75,
+"Library":48,
+"MS Choral Room":60
 }
 
+total_emails = []
 emails = []
 schedules = []
 
 classes_reader = 0
-num_period = 5
+num_periods = 5
+
+seminars_by_period = [[] for _ in range(num_periods)]
 
 classes = []
-class_capacities = [[] for _ in range(num_period)]
+class_capacities = [[] for _ in range(num_periods)]
 master_list = []
 
 class Status():
@@ -140,28 +147,31 @@ def init(uploaded_csv_file_paths, uploaded_output_dir):
     csv_processing()
 
 def reset():
-    global preferences_csv, preferences_reader, studenttograde, emails, schedules, classes_reader, num_period, classes, class_capacities, master_list
+    global preferences_csv, preferences_reader, studenttograde, emailtoname, total_emails, emails, schedules, classes_reader, num_periods, seminars_by_period, classes, class_capacities, master_list
 
     preferences_reader = 0
     preferences_csv = 0
 
     studenttograde = {}
+    emailtoname = {}
 
+    total_emails = []
     emails = []
     schedules = []
 
     classes_reader = 0
-    num_period = 5
+    num_periods = 5
 
+    seminars_by_period = [[] for _ in range(num_periods)]
     classes = []
-    class_capacities = [[] for _ in range(num_period)]
+    class_capacities = [[] for _ in range(num_periods)]
     master_list = []
 
 
 
 
 def csv_processing():
-    global num_period, preferences_csv, preferences_reader, studenttograde, classes_reader, classes, class_capacities, emails, master_list, schedules, csv_file_paths
+    global num_periods, preferences_csv, preferences_reader, studenttograde, emailtoname, classes_csv, classes_reader, classes, class_capacities, total_emails, emails, master_list, schedules, csv_file_paths, seminars_by_period
 
     try:
         os.mkdir(output_directory)
@@ -193,6 +203,7 @@ def csv_processing():
 
         for student in studenttograde_reader:
             studenttograde[student[0]] = int(student[1])
+            emailtoname[student[0]] = student[2]
             emails += [student[0]]
             if int(student[1]) < 11:
                 lunch_capacities[0] += 1
@@ -200,7 +211,7 @@ def csv_processing():
                 lunch_capacities[1] += 1
 
         schedules = []
-        for i in range(num_period):
+        for i in range(num_periods):
             schedules += [[0] * len(emails)]
 
         classes_csv = open(csv_file_paths['seminars'])
@@ -212,90 +223,98 @@ def csv_processing():
             print(aclass)
             classes += [aclass[0]]
             for x, room in enumerate(aclass[1:]):
-                if room in roomtocapacity.keys():
-                    class_capacities[x] += [int(roomtocapacity[room])]
-                    period_capacities[x] += int(roomtocapacity[room])
-                else:
-                    class_capacities[x] += [int(roomtocapacity[room[:-6].strip()])]
-                    period_capacities[x] += int(roomtocapacity[room[:-6].strip()])
+                class_capacities[x] += [int(roomtocapacity[room.strip()])]
+                period_capacities[x] += int(roomtocapacity[room.strip()])
+
+                if room != "0":
+                    seminars_by_period[x].append(aclass[0])
 
         
 
         # Remove all duplicate students TODO: fill missing students !!!DONE!!!
-        flag = True
-        students = []
         rows = []
-        missing_students = list(emails)
+        missing_students = deepcopy(emails)
         for student in preferences_reader:
-            name = student[1]
-            duplicate = False
-            for s in students:
-                if s == name:
-                    duplicate = True
-                    break
+            email = student[1]
+            total_emails.append(email)
             for x, s in enumerate(missing_students):
-                if s == name:
+                if s == email:
                     missing_students.pop(x)
-            if not duplicate:
-                students += [name]
-                rows += [student]
+                    if student[0] == "time":
+                        studenttograde[email] = 0
 
-            if flag:
-                flag = False
+        for email in missing_students:
 
-        for name in missing_students:
-            student = ["time", name] + [classes[random.randint(0, len(classes) - 3)] for _ in range(5*num_period)]
+            print("MISSING STUDENT:", email)
 
-            if studenttograde[name] > 10:
+            total_emails.append(email)
+
+            student = ["time", email, "grade"]
+
+            for period in range(num_periods):
+
+                if period == 3:
+                    continue
+
+                for _ in range(5):
+                    student.append(
+                        seminars_by_period[period][random.randint(0, len(seminars_by_period[period])-1)]
+                    )
+
+            for _ in range(20):
+                student.append("")
+
+            if studenttograde[email] > 10:
                 lunch_capacities[1] -= 1
                 lunch_capacities[0] += 1
 
-            studenttograde[name] = 0
+            studenttograde[email] = 0
             rows += [student]
         
-        write_prefs = open(csv_file_paths['prefs'], "wt", newline='')
+        write_prefs = open(csv_file_paths['prefs'], "at", newline='')
         preferences_writer = csv.writer(write_prefs)
         preferences_writer.writerows(rows)
         write_prefs.close()
 
         preferences_csv.seek(0)
 
-             
 
-        lunches = [
-            ["First Lunch", 0, 0, lunch_capacities[1], 0, 0],
-            ["Second Lunch", 0, 0, 0, lunch_capacities[0], 0]
+        extras = [
+            ["First Lunch", 0, 0, num_students, 0, 0],
+            ["Second Lunch", 0, 0, 0, num_students, 0],
+            ["Presenting", 0, 0, 0, 0, len(student_led_seminar_students)]
         ]
 
-        for lunch in lunches:
+        for lunch in extras:
             classes += [lunch[0]]
             for x, capacity in enumerate(lunch[1:]):
                 class_capacities[x] += [int(capacity)]
         
-        
 
-        for period in range(num_period):
+        for period in range(num_periods):
             try:
-                assert (period_capacities[period] >= num_students)
+                num = num_students/2 if (period == 2 or period == 3) else num_students
+                assert (period_capacities[period] >= num)
             except AssertionError:
-                raise AssertionError(f"Not enough slots for students in period {period}, {period_capacities[period]} < {num_students}")
+                raise AssertionError(f"Not enough slots for students in period {period}, {period_capacities[period]} < {num}")
             
         # initializing master list, ignore variable names :pleading_face:
         master_list = []
         for i in range(len(classes)):
             ohio = []
-            for j in range(num_period):
-                ohio += [ [] ]
-            master_list += [ohio]
+            for j in range(num_periods):
+                ohio.append([])
+            master_list.append(ohio)
+
     except AssertionError as a:
         status.log(a.args[0])
         return
     except Exception as e:
-        raise e
+        raise e.with_traceback()
     
     
 
-    for period in range(num_period):
+    for period in range(num_periods):
         try:
             main(period)
         except Exception as e:
@@ -310,7 +329,7 @@ def csv_processing():
 
 def main(period):
 
-    global preferences_csv, preferences_reader, classes, class_capacities, studenttograde, emails, schedules, status
+    global preferences_csv, preferences_reader, classes, class_capacities, studenttograde, total_emails, emails, schedules, status, seminars_by_period
 
     """Solving an Assignment Problem with MinCostFlow."""
     # Instantiate a SimpleMinCostFlow solver.
@@ -366,18 +385,16 @@ def main(period):
     for student in preferences_reader:
         # formatting to what we've been using (mfw)
         grade = studenttograde[student[1]]
-        temp_prefs = list(student)
-        cutoff = 15
+        temp_prefs = deepcopy(student)
         offset = 0
+        lunch = 3
         if grade > 10.5:
-            cutoff = 10
             offset = 20
+            lunch = 2
         for i in range(20):
-            if i == cutoff:
-                offset += 5
             # currently, this sets entries 2 to 26 to be the SEMINAR NAMES
             # TODO: replace SEMINAR NAMES with ROOM NUMBERS or IDS
-            student[i + 2] = temp_prefs[i + 2 + offset]
+            student[i + initial_index] = temp_prefs[i + initial_index + offset]
 
         student_index += 1
         # create edge between source and students
@@ -388,32 +405,78 @@ def main(period):
         missing_flag = (studenttograde[student[1]] == 0)
         flag = student[1] in the_list
 
-        temp = list(classes)
-        replace = []
-        for pref in range(5):
-            try:
-                temp.remove(student[2 + pref + period * 5])
-            except ValueError:
-                replace += [pref]
-                
-        if len(replace) > 0:
-            for a in replace:
-                randomval = random.randint(0, len(temp) - 1)
-                student[2 + a + period * 5] = temp[randomval]
+        # Since we only capture 4 periods worth of data, we need to make sure we're treating the third set of 5 preferences correctly
+        period_offset = 0
+        if period > lunch:
+            period_offset = 1
 
-        if period == 3 and int(studenttograde[student[1]]) < 11:
+        # Time to deal with duplicate and invalid preferences, first create a list of avaliable seminars for the period
+        if period != lunch:
+            temp = deepcopy(seminars_by_period[period])
+
+            if period == 4 and student[1] == "yuknat.jack@doversherborn.org":
+                pass
+
+            # remove the seminars students have already been scheduled into
+            if period != 0:
+                for p in range(period):
+                    try:
+                        temp.remove(classes[schedules[p][student_index-1]])
+                    except:
+                        continue
+
+            replace = []
             for pref in range(5):
-                student[2 + pref + 2 * 5] = "First Lunch"
-        elif period == 2 and int(studenttograde[student[1]]) > 10:
-            for pref in range(5):
-                student[2 + pref + 3 * 5] = "Second Lunch"
+                try:
+                    temp.remove(student[initial_index + pref + (period - period_offset) * 5])
+                except ValueError:
+                    replace += [pref]
+                
+            if len(replace) > 0:
+
+                print(
+                    f"Replacing {emailtoname[student[1]]}'s preferences period {period+1}"
+                )
+                for index, a in enumerate(replace):
+
+                    # If we're replacing the last preference, no need to shift anything over
+                    if a != 4:
+                        
+                        start = initial_index + (period - period_offset)*5 + a + 1
+                        end = initial_index + (period - period_offset + 1)*5
+
+                        for pref in range(start, end):
+
+                            student[pref - 1] = student[pref]
+
+                    
+                        for pref in range(index+1, len(replace)):
+                            replace[pref] -= 1
+
+                    randomval = random.randint(0, len(temp)-1)
+                    student[initial_index + 4 + (period - period_offset) * 5] = temp[randomval]
+
 
         for j in range(5):
             # find ID of class that student wants
             # insert at preference
             # period = 1: 1 2 3 4 5
             # period = 2: 6 7 8 9 10
-            class_id = classes.index(student[j + classes_per_period * period + initial_index])
+
+            if student[1] in student_led_seminar_students and period == 4:
+                class_id = classes.index("Presenting")
+            elif period == lunch:
+                if period == 2:
+                    class_id = classes.index("First Lunch")
+                elif period == 3:
+                    class_id = classes.index("Second Lunch")
+            else:
+                pref_class = student[j + classes_per_period * (period - period_offset) + initial_index]
+                if pref_class[-2:] == '""':
+                    pref_class = pref_class[:-2]
+                class_id = classes.index(pref_class)
+
+
             # connect student nodes to classes
             student_start_nodes += [num_classes + student_index]
             student_end_nodes += [class_id + 1]
@@ -424,7 +487,7 @@ def main(period):
             elif missing_flag:
                 weight = int(weight/10)
             if flag:
-                weight *= 10
+                weight *= 100
             student_costs += [weight * j]
 
     
@@ -479,24 +542,36 @@ def main(period):
         print()
         for arc in range(smcf.num_arcs()):
             if smcf.flow(arc) > 0 and smcf.tail(arc) != source and smcf.head(arc) != sink:
-                print(
-                    "Student %s assigned to class %s.  Cost = %d, Flow = %d"
-                    % (emails[smcf.tail(arc) - num_classes - 1], classes[smcf.head(arc) - 1], smcf.unit_cost(arc), smcf.flow(arc))
-                )
-                schedules[period][smcf.tail(arc) - num_classes - 1] = smcf.head(arc) - 1
-                master_list[smcf.head(arc) - 1][period] += [emails[smcf.tail(arc) - num_classes - 1]]
 
-                print(master_list[0][period])
+                if smcf.tail(arc) - num_classes - 1 >= len(emails):
+                    break
+
+                # print(
+                #     "Student %s assigned to class %s.  Cost = %d, Flow = %d"
+                #     % (emails[smcf.tail(arc) - num_classes - 1], classes[smcf.head(arc) - 1], smcf.unit_cost(arc), smcf.flow(arc))
+                # )
+                schedules[period][smcf.tail(arc) - num_classes - 1] = smcf.head(arc) - 1
+                master_list[smcf.head(arc) - 1][period].append(total_emails[smcf.tail(arc) - num_classes - 1])
+
+                # print(master_list[0][period])
 
     else:
-        print("There was an issue with the min cost flow input.")
-        print(f"Status: {smcf_status}")
+        raise Exception("There was an issue with the min cost flow input." + f"Status: {smcf_status}")
 
 def output():
 
-    global emails, num_period, schedules, classes, master_list, output_directory
+    global total_emails, emails, num_periods, schedules, classes, master_list, output_directory, classes_csv, classes_reader
 
     location = output_directory
+
+    classes_csv.seek(0)
+
+    class_to_room = {}
+    for aclass in classes_reader:
+        class_to_room[aclass[0]] = aclass[1:]
+
+    class_to_room["First Lunch"] = ["", "", "Lunch", "", ""]
+    class_to_room["Second Lunch"] = ["", "", "", "Lunch", ""]
 
     try:
         os.mkdir(location + "\\Students")
@@ -508,27 +583,38 @@ def output():
 
     for i in range(len(emails)):
 
-        name = emails[i][:str(emails[i]).find("@")]
+        name = emailtoname[total_emails[i]]
+
+        seminars = []
+        for j in range(num_periods):
+            seminars += [str(classes[schedules[j][i]])]
+        print(emails[i], seminars)
+
+        if total_emails[i] in student_led_seminar_students:
+            seminars[4] = "Student Run Seminar - Arcade Extravaganza"
+
+        rooms = []
+        for x, seminar in enumerate(seminars):
+            rooms.append(class_to_room[seminar][x])
 
         fin = []
-        for j in range(num_period):
-            fin += [str(classes[schedules[j][i]])]
-        print(emails[i], fin)
-
-        if emails[i] in student_led_seminar_students:
-            fin[4] = classes.index("Student Run Seminar - Arcade Extravaganza")
+        for x in range(num_periods):
+            fin.append([rooms[x], seminars[x]])
 
         status.log("Creating schedule for student " + name)
 
-        f = open(f"{location}\\Students\\{name}Schedule.csv","w")
-        f.write(",".join(fin))
+        f = open(f"{location}\\Students\\{name} Schedule.csv","w", newline='')
+        writer = csv.writer(f)
+        writer.writerows(fin)
         f.close()
 
     status.log("Schedules complete")
+
+    too_empty_seminars = []
     
     # master_list: it works like, master_list[class][period]
     for i in range(len(classes)):
-        for j in range(4):
+        for j in range(num_periods):
             print(classes[i], "Period " + str(j), master_list[i][j])
             if len(master_list[i][j]) == 0:
                 continue
@@ -542,12 +628,21 @@ def output():
                 return
             
             status.log(f"Creating attendance for class {classes[i]} period {j+1}")
- 
-            f = open(f"{location}\\SeminarAttendances\\{classes[i]}Period{j+1}.csv", "w")
-            f.write("\n".join(master_list[i][j]))
+
+            f = open(f"{location}\\SeminarAttendances\\{classes[i].split('-')[0]}Period{j+1}.csv", "w")
+
+
+            names = deepcopy(master_list[i][j])
+            for x, email in enumerate(names):
+                names[x] = emailtoname[email]
+            if len(names) < 5:
+                too_empty_seminars.append(f"{classes[i]} Period {j+1}")
+            f.write("\n".join(names))
             f.close()
 
-    
+    print(too_empty_seminars)
+    for s in too_empty_seminars:
+        print(s)
 
     status.log("Master Lists complete")
     #Identified by web interface to tell if completed
