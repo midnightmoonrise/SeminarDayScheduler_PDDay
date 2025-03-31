@@ -390,6 +390,8 @@ def main(period):
         lunch = 3
         if grade > 10.5:
             offset = 20
+            if student[0] == "timee":
+                offset = 0
             lunch = 2
         for i in range(20):
             # currently, this sets entries 2 to 26 to be the SEMINAR NAMES
@@ -570,8 +572,9 @@ def output():
     for aclass in classes_reader:
         class_to_room[aclass[0]] = aclass[1:]
 
-    class_to_room["First Lunch"] = ["", "", "Lunch", "", ""]
-    class_to_room["Second Lunch"] = ["", "", "", "Lunch", ""]
+    class_to_room["First Lunch"] = ["0", "0", "Lunch", "0", "0"]
+    class_to_room["Second Lunch"] = ["0", "0", "0", "Lunch", "0"]
+    class_to_room["Presenting"] = ["0", "0", "0", "0", "107"]
 
     try:
         os.mkdir(location + "\\Students")
@@ -599,13 +602,12 @@ def output():
 
         fin = []
         for x in range(num_periods):
-            fin.append([rooms[x], seminars[x]])
+            fin.append(f"{rooms[x]}: {seminars[x]}\n")
 
         status.log("Creating schedule for student " + name)
 
-        f = open(f"{location}\\Students\\{name} Schedule.csv","w", newline='')
-        writer = csv.writer(f)
-        writer.writerows(fin)
+        f = open(f"{location}\\Students\\{name} Schedule.txt","w", newline='')
+        f.writelines(fin)
         f.close()
 
     status.log("Schedules complete")
@@ -616,7 +618,7 @@ def output():
     for i in range(len(classes)):
         for j in range(num_periods):
             print(classes[i], "Period " + str(j), master_list[i][j])
-            if len(master_list[i][j]) == 0:
+            if class_to_room[classes[i]][j] == "0":
                 continue
 
             try:
