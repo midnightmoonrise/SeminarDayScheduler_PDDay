@@ -103,6 +103,15 @@ roomtocapacity = {
 "MS Choral Room":60
 }
 
+# switch to being able to read room capacities from a CSV? 
+listform = []
+with open("testing-csv-files/roomlist.csv", newline='') as infile:
+    reader = csv.DictReader(infile)
+    for row in reader:
+        listform.append(tuple(row))
+
+keylist = {v:k for (v,k) in listform}
+## end addition
 total_emails = []
 emails = []
 schedules = []
