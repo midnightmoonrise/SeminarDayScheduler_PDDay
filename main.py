@@ -26,13 +26,9 @@ for x in range(len(student_led_seminar_students)):
 # TODO: output to pdf
 # TODO: some output thing
 # TODO: STUDENT LED SEMINAR
-
-# for lunches:
-# create a class node period 3 and 4 that takes (half?) of the students with weight 0 going to it, any students who choose or are selected for lunch
-# will only have an edge to lunch at cost 0. essentially overwrite their choices
-
-# lunches are done, freshman and sophomores are put into first lunch, juniors and seniors into second lunch. Preferences are overwritten.
-# alternative, create a preference to first or second lunch, could be formatted with help from google forms
+# TODO: REMOVE ALL LUNCH THINGS BECAUSE YOU DON'T HAVE TO DEAL WITH IT FOR PD DAY. 
+# TODO: Get rid of grade distinctions
+# TODO: Missing students change to most popular seminars (if time, lowest priority)
 
 # duplicate preferences can be done during preproccesing >>> done
 # duplicate students has also been handled (incase that happens somehow)
@@ -55,62 +51,12 @@ preferences_csv = 0
 
 studenttograde = {}
 emailtoname = {}
-roomtocapacity = {
-    "0":0,
-"105":22,
-"106":22,
-"107":22,
-"110A":22,
-"110B":22,
-"114":22,
-"115":22,
-"116":22,
-"119":22,
-"120":22,
-"121":22,
-"122":22,
-"123":22,
-"202":22,
-"203":22,
-"204":22,
-"205":22,
-"206":22,
-"207":22,
-"213":22,
-"214":22,
-"215":22,
-"216":22,
-"220":22,
-"221":22,
-"222":22,
-"223":22,
-"224":22,
-"225":22,
-"226":22,
-"227":22,
-"103 S":22,
-"105 S":22,
-"106 S":22,
-"107 S":22,
-"109 S":22,
-"112 S":22,
-"114 S":22,
-"Auditorium":125,
-"Band Room":75,
-"Fitness/Weight Room":18,
-"HS Gym":75,
-"Library":48,
-"MS Choral Room":60
-}
-
-# switch to being able to read room capacities from a CSV? 
-listform = []
+# use a CSV File to read room capacities
+roomCapacities = {}
 with open("testing-csv-files/roomlist.csv", newline='') as infile:
     reader = csv.DictReader(infile)
     for row in reader:
-        listform.append(tuple(row))
-
-keylist = {v:k for (v,k) in listform}
+        roomCapacities[row["room"]] = row["capacity"]
 ## end addition
 total_emails = []
 emails = []
@@ -232,8 +178,8 @@ def csv_processing():
             print(aclass)
             classes += [aclass[0]]
             for x, room in enumerate(aclass[1:]):
-                class_capacities[x] += [int(roomtocapacity[room.strip()])]
-                period_capacities[x] += int(roomtocapacity[room.strip()])
+                class_capacities[x] += [int(roomCapacities[room.strip()])]
+                period_capacities[x] += int(roomCapacities[room.strip()])
 
                 if room != "0":
                     seminars_by_period[x].append(aclass[0])
