@@ -14,14 +14,14 @@ for x in range(len(the_list)):
     first, last = the_list[x].split(" ")
     the_list[x] = last.lower() + "." + first.lower() + "@doversherborn.org"
 
-student_led_seminar_students = [
-    "Jacob Spilman", "Nathan Zeng", "Vivian Kamphaus", "Alexander Mroz", "Patrick Driscoll", "Simon Hart", "Joshua Dias", "Gabriella Schroeder", "Dagny Abbett", "Nora Olson", "james davies", "tessa correll",
-    "Armaan Tamber", "Cillian Moss", "Felix Giesen" 
-]
+# student_led_seminar_students = [
+#     "Jacob Spilman", "Nathan Zeng", "Vivian Kamphaus", "Alexander Mroz", "Patrick Driscoll", "Simon Hart", "Joshua Dias", "Gabriella Schroeder", "Dagny Abbett", "Nora Olson", "james davies", "tessa correll",
+#     "Armaan Tamber", "Cillian Moss", "Felix Giesen" 
+# ]
 
-for x in range(len(student_led_seminar_students)):
-    first, last = student_led_seminar_students[x].split(" ")
-    student_led_seminar_students[x] = last.lower() + "." + first.lower() + "@doversherborn.org"
+# for x in range(len(student_led_seminar_students)):
+#     first, last = student_led_seminar_students[x].split(" ")
+#     student_led_seminar_students[x] = last.lower() + "." + first.lower() + "@doversherborn.org"
 
 # TODO: output to pdf
 # TODO: some output thing
@@ -64,6 +64,7 @@ schedules = []
 
 classes_reader = 0
 num_periods = 5
+num_preferences_per_period = 5
 
 seminars_by_period = [[] for _ in range(num_periods)]
 
@@ -116,6 +117,7 @@ def reset():
 
     classes_reader = 0
     num_periods = 5
+    num_preferences_per_period = 5
 
     seminars_by_period = [[] for _ in range(num_periods)]
     classes = []
@@ -160,10 +162,10 @@ def csv_processing():
             studenttograde[student[0]] = int(student[1])
             emailtoname[student[0]] = student[2]
             emails += [student[0]]
-            if int(student[1]) < 11:
-                lunch_capacities[0] += 1
-            else:
-                lunch_capacities[1] += 1
+            # if int(student[1]) < 11:
+            #     lunch_capacities[0] += 1
+            # else:
+            #     lunch_capacities[1] += 1
 
         schedules = []
         for i in range(num_periods):
@@ -208,10 +210,11 @@ def csv_processing():
 
             for period in range(num_periods):
 
-                if period == 3:
-                    continue
+                # if period == 3:
+                #     continue
 
-                for _ in range(5):
+                # give them random preferences if they did not fill out the form
+                for _ in range(num_preferences_per_period):
                     student.append(
                         seminars_by_period[period][random.randint(0, len(seminars_by_period[period])-1)]
                     )
@@ -219,9 +222,9 @@ def csv_processing():
             for _ in range(20):
                 student.append("")
 
-            if studenttograde[email] > 10:
-                lunch_capacities[1] -= 1
-                lunch_capacities[0] += 1
+            # if studenttograde[email] > 10:
+            #     lunch_capacities[1] -= 1
+            #     lunch_capacities[0] += 1
 
             studenttograde[email] = 0
             rows += [student]
@@ -234,16 +237,16 @@ def csv_processing():
         preferences_csv.seek(0)
 
 
-        extras = [
-            ["First Lunch", 0, 0, num_students, 0, 0],
-            ["Second Lunch", 0, 0, 0, num_students, 0],
-            ["Presenting", 0, 0, 0, 0, len(student_led_seminar_students)]
-        ]
+        # extras = [
+        #     # ["First Lunch", 0, 0, num_students, 0, 0],
+        #     # ["Second Lunch", 0, 0, 0, num_students, 0],
+        #     # ["Presenting", 0, 0, 0, 0, len(student_led_seminar_students)]
+        # ]
 
-        for lunch in extras:
-            classes += [lunch[0]]
-            for x, capacity in enumerate(lunch[1:]):
-                class_capacities[x] += [int(capacity)]
+        # for lunch in extras:
+        #     classes += [lunch[0]]
+        #     for x, capacity in enumerate(lunch[1:]):
+        #         class_capacities[x] += [int(capacity)]
         
 
         for period in range(num_periods):
@@ -383,7 +386,7 @@ def main(period):
                         continue
 
             replace = []
-            for pref in range(5):
+            for pref in range(num_preferences_per_period):
                 try:
                     temp.remove(student[initial_index + pref + (period - period_offset) * 5])
                 except ValueError:
@@ -399,8 +402,8 @@ def main(period):
                     # If we're replacing the last preference, no need to shift anything over
                     if a != 4:
                         
-                        start = initial_index + (period - period_offset)*5 + a + 1
-                        end = initial_index + (period - period_offset + 1)*5
+                        start = initial_index + (period - period_offset) * num_preferences_per_period + a + 1
+                        end = initial_index + (period - period_offset + 1) * num_preferences_per_period
 
                         for pref in range(start, end):
 
@@ -411,27 +414,28 @@ def main(period):
                             replace[pref] -= 1
 
                     randomval = random.randint(0, len(temp)-1)
-                    student[initial_index + 4 + (period - period_offset) * 5] = temp[randomval]
+                    student[initial_index + 4 + (period - period_offset) * num_preferences_per_period] = temp[randomval]
 
 
-        for j in range(5):
+        for j in range(num_preferences_per_period):
             # find ID of class that student wants
             # insert at preference
             # period = 1: 1 2 3 4 5
             # period = 2: 6 7 8 9 10
 
-            if student[1] in student_led_seminar_students and period == 4:
-                class_id = classes.index("Presenting")
-            elif period == lunch:
-                if period == 2:
-                    class_id = classes.index("First Lunch")
-                elif period == 3:
-                    class_id = classes.index("Second Lunch")
-            else:
-                pref_class = student[j + classes_per_period * (period - period_offset) + initial_index]
-                if pref_class[-2:] == '""':
-                    pref_class = pref_class[:-2]
-                class_id = classes.index(pref_class)
+            # if student[1] in student_led_seminar_students and period == 4:
+            #     class_id = classes.index("Presenting")
+            # elif period == lunch:
+            #     if period == 2:
+            #         class_id = classes.index("First Lunch")
+            #     elif period == 3:
+            #         class_id = classes.index("Second Lunch")
+            # else:
+            # indent the below to under the "else" if student-run seminars ever come back!
+            pref_class = student[j + classes_per_period * (period - period_offset) + initial_index]
+            if pref_class[-2:] == '""':
+                pref_class = pref_class[:-2]
+            class_id = classes.index(pref_class)
 
 
             # connect student nodes to classes
@@ -529,7 +533,7 @@ def output():
 
     class_to_room["First Lunch"] = ["0", "0", "Lunch", "0", "0"]
     class_to_room["Second Lunch"] = ["0", "0", "0", "Lunch", "0"]
-    class_to_room["Presenting"] = ["0", "0", "0", "0", "107"]
+    # class_to_room["Presenting"] = ["0", "0", "0", "0", "107"]
 
     try:
         os.mkdir(location + "\\Students")
@@ -548,8 +552,8 @@ def output():
             seminars += [str(classes[schedules[j][i]])]
         print(emails[i], seminars)
 
-        if total_emails[i] in student_led_seminar_students:
-            seminars[4] = "Student Run Seminar - Arcade Extravaganza"
+        # if total_emails[i] in student_led_seminar_students:
+        #     seminars[4] = "Student Run Seminar - Arcade Extravaganza"
 
         rooms = []
         for x, seminar in enumerate(seminars):
@@ -604,5 +608,3 @@ def output():
     status.log("Master Lists complete")
     #Identified by web interface to tell if completed
     status.log("Success")
-
-    # emerson hirsch, daniel spilman, karn chutinan, serena baranello, selin gulden, amethyst xue, iris chen, ethan filip, cecilia ritchey, addison hirsch
