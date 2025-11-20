@@ -5,14 +5,18 @@ import random
 import os
 from copy import deepcopy
 
-the_list = [
-    "Emerson Hirsch", "Daniel Spilman", "Jacob Spilman", "Karn Chutinan", "Serena Baranello", "Selin Gulden", "Daniel Xue", "Iris Chen", "Ethan Filip", "Cecilia Ritchey", "Addison Hirsch", "Alexander Mroz", "Isaac Lee",
-    "Elijah Littlefield", "Jaideep Padhi", "Nicholas Wallen", "Kylie Ozerdam", "Selena Pu", "Kaelyn Wu", "Ryan Li", "Gabriel Goldstein", "Felix Giesen", "Eric Liang", "Devon Ntiforo", "Julia Ritchey", "Siming Chen"
-]
+# anyone you want to give special priority to
+the_list = []
 
+# email maker for teachers if we wanna do the whole the_list thing
 for x in range(len(the_list)):
-    first, last = the_list[x].split(" ")
-    the_list[x] = last.lower() + "." + first.lower() + "@doversherborn.org"
+    if the_list[x] == "Rebecca Waterman":
+        the_list[x] = "watermanr1@doversherborn.org"
+    elif the_list[x] == "Leah Li":
+        the_list[x] = "liy@doversherborn.org"
+    else:
+        first, last = the_list[x].split(" ")
+        the_list[x] = last.lower() + first[0].lower() + "@doversherborn.org"
 
 # student_led_seminar_students = [
 #     "Jacob Spilman", "Nathan Zeng", "Vivian Kamphaus", "Alexander Mroz", "Patrick Driscoll", "Simon Hart", "Joshua Dias", "Gabriella Schroeder", "Dagny Abbett", "Nora Olson", "james davies", "tessa correll",
@@ -26,7 +30,6 @@ for x in range(len(the_list)):
 # TODO: output to pdf
 # TODO: some output thing
 # TODO: STUDENT LED SEMINAR
-# TODO: REMOVE ALL LUNCH THINGS BECAUSE YOU DON'T HAVE TO DEAL WITH IT FOR PD DAY. 
 # TODO: Get rid of grade distinctions
 # TODO: Missing students change to most popular seminars (if time, lowest priority)
 
@@ -51,13 +54,13 @@ preferences_csv = 0
 
 studenttograde = {}
 emailtoname = {}
-# use a CSV File to read room capacities
-roomCapacities = {}
-with open("testing-csv-files/roomlist.csv", newline='') as infile:
-    reader = csv.DictReader(infile)
-    for row in reader:
-        roomCapacities[row["room"]] = row["capacity"]
-## end addition
+# use a CSV File to read room capacities (may not be needed)
+# roomCapacities = {}
+# with open("testing-csv-files/roomlist.csv", newline='') as infile:
+#     reader = csv.DictReader(infile)
+#     for row in reader:
+#         roomCapacities[row["room"]] = row["capacity"]
+
 total_emails = []
 emails = []
 schedules = []
@@ -174,7 +177,7 @@ def csv_processing():
         classes_csv = open(csv_file_paths['seminars'])
         classes_reader = csv.reader(classes_csv)
 
-        period_capacities = [0, 0, 0, 0, 0]
+        period_capacities = [0 for i in range(num_periods)]
 
         for aclass in classes_reader:
             print(aclass)
@@ -520,7 +523,7 @@ def main(period):
         raise Exception("There was an issue with the min cost flow input." + f"Status: {smcf_status}")
 
 def output():
-
+ 
     global total_emails, emails, num_periods, schedules, classes, master_list, output_directory, classes_csv, classes_reader
 
     location = output_directory
