@@ -55,18 +55,18 @@ preferences_csv = 0
 studenttograde = {}
 emailtoname = {}
 # use a CSV File to read room capacities (may not be needed)
-# roomCapacities = {}
-# with open("testing-csv-files/roomlist.csv", newline='') as infile:
-#     reader = csv.DictReader(infile)
-#     for row in reader:
-#         roomCapacities[row["room"]] = row["capacity"]
+roomCapacities = {}
+with open("testing-csv-files/roomlist.csv", newline='') as infile:
+    reader = csv.DictReader(infile)
+    for row in reader:
+        roomCapacities[row["room"]] = row["capacity"]
 
 total_emails = []
 emails = []
 schedules = []
 
 classes_reader = 0
-num_periods = 5
+num_periods = 3
 num_preferences_per_period = 5
 
 seminars_by_period = [[] for _ in range(num_periods)]
@@ -75,35 +75,35 @@ classes = []
 class_capacities = [[] for _ in range(num_periods)]
 master_list = []
 
-class Status():
-    #Web interface displays whatever this variable is set to
-    currentLog = 'Starting...'
+# class Status():
+#     #Web interface displays whatever this variable is set to
+#     currentLog = 'Starting...'
 
-    #def __init__(this, stringvar: tk.StringVar, window: tk.Tk):
-        #this.stringvar = stringvar
-        #this.window = window
+#     #def __init__(this, stringvar: tk.StringVar, window: tk.Tk):
+#         #this.stringvar = stringvar
+#         #this.window = window
 
-    def log(this, string):
-        #this.stringvar.set(string)
-        #this.window.update()
-        #this.window.update_idletasks()
-        this.currentLog = string
-        print(string)
+#     def log(this, string):
+#         #this.stringvar.set(string)
+#         #this.window.update()
+#         #this.window.update_idletasks()
+#         this.currentLog = string
+#         print(string)
 
-    #def get(this):
-        #return this.stringvar.get()
+#     #def get(this):
+#         #return this.stringvar.get()
 
-status = Status()
+# status = Status()
 
 #Called by the web interface
-def init(uploaded_csv_file_paths, uploaded_output_dir):
-    global csv_file_paths, output_directory
+# def init(uploaded_csv_file_paths, uploaded_output_dir):
+#     global csv_file_paths, output_directory
 
-    reset()
-    csv_file_paths = uploaded_csv_file_paths
-    output_directory = uploaded_output_dir
+#     reset()
+#     csv_file_paths = uploaded_csv_file_paths
+#     output_directory = uploaded_output_dir
 
-    csv_processing()
+#     csv_processing()
 
 def reset():
     global preferences_csv, preferences_reader, studenttograde, emailtoname, total_emails, emails, schedules, classes_reader, num_periods, seminars_by_period, classes, class_capacities, master_list
@@ -119,7 +119,7 @@ def reset():
     schedules = []
 
     classes_reader = 0
-    num_periods = 5
+    num_periods = 3
     num_preferences_per_period = 5
 
     seminars_by_period = [[] for _ in range(num_periods)]
@@ -149,9 +149,13 @@ def csv_processing():
 
     # break try catch statements
     try:
-        preferences_csv = open(csv_file_paths['prefs'])
+        # DONE: Change variable to filename for hardcoding
+        preferences_csv = open("PD_CSV/testing_data_sample.csv")
         preferences_reader = csv.reader(preferences_csv)
 
+        # CHANGE
+        # Do we need grade reader? Or does this also handle emails? Check this.
+        # If not, we can delete it cause we removed the flags for grades
         studenttograde_csv = open(csv_file_paths['grades'])
         studenttograde_reader = csv.reader(studenttograde_csv)
 
@@ -161,7 +165,8 @@ def csv_processing():
 
         lunch_capacities = [0, 0]
 
-        for student in studenttograde_reader:
+        # writes emails in
+        for student in studenttograde_reader: #studenttograde_reader just reads the grades CSV.
             studenttograde[student[0]] = int(student[1])
             emailtoname[student[0]] = student[2]
             emails += [student[0]]
@@ -174,11 +179,13 @@ def csv_processing():
         for i in range(num_periods):
             schedules += [[0] * len(emails)]
 
+        # CHANGE THIS TO HARD CODE AS WELL.
         classes_csv = open(csv_file_paths['seminars'])
         classes_reader = csv.reader(classes_csv)
 
         period_capacities = [0 for i in range(num_periods)]
 
+        # fills in class capacities in the classes list
         for aclass in classes_reader:
             print(aclass)
             classes += [aclass[0]]
@@ -202,6 +209,7 @@ def csv_processing():
                     missing_students.pop(x)
                     if student[0] == "time":
                         studenttograde[email] = 0
+            print(student)
 
         for email in missing_students:
 
@@ -254,7 +262,8 @@ def csv_processing():
 
         for period in range(num_periods):
             try:
-                num = num_students/2 if (period == 2 or period == 3) else num_students
+                # num = num_students/2 if (period == 2 or period == 3) else num_students
+                num = num_students # we shouldn't have to deal with funny situations so I'm commenting it out
                 assert (period_capacities[period] >= num)
             except AssertionError:
                 raise AssertionError(f"Not enough slots for students in period {period}, {period_capacities[period]} < {num}")
@@ -364,9 +373,11 @@ def main(period):
         source_start_nodes += [0]
         source_end_nodes += [num_classes + student_index]
         source_costs += [0]
-        senior_flag = (studenttograde[student[1]] == 12)
-        missing_flag = (studenttograde[student[1]] == 0)
-        flag = student[1] in the_list
+
+        # specific weightings that do not apply to PD
+        # senior_flag = (studenttograde[student[1]] == 12)
+        # missing_flag = (studenttograde[student[1]] == 0)
+        # flag = student[1] in the_list
 
         # Since we only capture 4 periods worth of data, we need to make sure we're treating the third set of 5 preferences correctly
         period_offset = 0
@@ -435,6 +446,7 @@ def main(period):
             #         class_id = classes.index("Second Lunch")
             # else:
             # indent the below to under the "else" if student-run seminars ever come back!
+
             pref_class = student[j + classes_per_period * (period - period_offset) + initial_index]
             if pref_class[-2:] == '""':
                 pref_class = pref_class[:-2]
@@ -446,12 +458,13 @@ def main(period):
             student_end_nodes += [class_id + 1]
             # j is cost, weighted by weight. heavier means more influence
             weight = 10000 - student_index
-            if senior_flag:
-                weight *= 10
-            elif missing_flag:
-                weight = int(weight/10)
-            if flag:
-                weight *= 100
+            # below are specific priorities - deleted because we aren't doing that for PD day
+            # if senior_flag:
+            #     weight *= 10
+            # elif missing_flag:
+            #     weight = int(weight/10)
+            # if flag:
+            #     weight *= 100
             student_costs += [weight * j]
 
     
@@ -572,7 +585,8 @@ def output():
         f.writelines(fin)
         f.close()
 
-    status.log("Schedules complete")
+    # status.log("Schedules complete")
+    print("Schedules complete")
 
     too_empty_seminars = []
     
@@ -608,6 +622,8 @@ def output():
     for s in too_empty_seminars:
         print(s)
 
-    status.log("Master Lists complete")
+    # status.log("Master Lists complete")
+    print("Master lists complete")
     #Identified by web interface to tell if completed
-    status.log("Success")
+    # status.log("Success")
+    print("Success")
