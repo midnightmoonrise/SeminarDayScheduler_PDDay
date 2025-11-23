@@ -111,6 +111,7 @@ def reset():
     preferences_reader = 0
     preferences_csv = 0
 
+    # can consider removing this dictionary as it's not needed
     studenttograde = {}
     emailtoname = {}
 
@@ -152,10 +153,7 @@ def csv_processing():
         # DONE: Change variable to filename for hardcoding
         preferences_csv = open("PD_CSV/testing_data_sample.csv")
         preferences_reader = csv.reader(preferences_csv)
-
-        # CHANGE
-        # Do we need grade reader? Or does this also handle emails? Check this.
-        # If not, we can delete it cause we removed the flags for grades
+        
         studenttograde_csv = open(csv_file_paths['grades'])
         studenttograde_reader = csv.reader(studenttograde_csv)
 
@@ -163,11 +161,11 @@ def csv_processing():
 
         preferences_csv.seek(0)
 
-        lunch_capacities = [0, 0]
+        # lunch_capacities = [0, 0]
 
         # writes emails in
         for student in studenttograde_reader: #studenttograde_reader just reads the grades CSV.
-            studenttograde[student[0]] = int(student[1])
+            # studenttograde[student[0]] = int(student[1])
             emailtoname[student[0]] = student[2]
             emails += [student[0]]
             # if int(student[1]) < 11:
@@ -180,7 +178,7 @@ def csv_processing():
             schedules += [[0] * len(emails)]
 
         # CHANGE THIS TO HARD CODE AS WELL.
-        classes_csv = open(csv_file_paths['seminars'])
+        classes_csv = open("PD_CSV/seminar_roomassignments.csv")
         classes_reader = csv.reader(classes_csv)
 
         period_capacities = [0 for i in range(num_periods)]
@@ -207,8 +205,8 @@ def csv_processing():
             for x, s in enumerate(missing_students):
                 if s == email:
                     missing_students.pop(x)
-                    if student[0] == "time":
-                        studenttograde[email] = 0
+                    # if student[0] == "time":
+                    #     studenttograde[email] = 0
             print(student)
 
         for email in missing_students:
@@ -277,7 +275,8 @@ def csv_processing():
             master_list.append(ohio)
 
     except AssertionError as a:
-        status.log(a.args[0])
+       # status.log(a.args[0])
+        print(a.args[0])
         return
     except Exception as e:
         raise e.with_traceback()
@@ -289,10 +288,13 @@ def csv_processing():
             main(period)
         except Exception as e:
             status.log(f"ERROR SCHEUDLING PERIOD {period}\n {e}")
+            print(f"ERROR SCHEUDLING PERIOD {period}\n {e}")
             raise e
-        status.log(f"Period {period} scheduled")
+        # status.log(f"Period {period} scheduled")
+        print(f"Period {period} scheduled")
 
-    status.log("Min Cost Flow solved, outputting...")
+    # status.log("Min Cost Flow solved, outputting...")
+    print("Min Cost Flow solved,outputting...")
     output()
 
     
@@ -352,21 +354,17 @@ def main(period):
     flag = False
     preferences_csv.seek(0)
     preferences_reader = csv.reader(preferences_csv)
+
+    ### CHANGE THIS!!!
+
     for student in preferences_reader:
         # formatting to what we've been using (mfw)
-        grade = studenttograde[student[1]]
+        # grade = studenttograde[student[1]]
         temp_prefs = deepcopy(student)
-        offset = 0
-        lunch = 3
-        if grade > 10.5:
-            offset = 20
-            if student[0] == "timee":
-                offset = 0
-            lunch = 2
         for i in range(20):
             # currently, this sets entries 2 to 26 to be the SEMINAR NAMES
             # TODO: replace SEMINAR NAMES with ROOM NUMBERS or IDS
-            student[i + initial_index] = temp_prefs[i + initial_index + offset]
+            student[i + initial_index] = temp_prefs[i + initial_index] # used to be a +offset after initial_index
 
         student_index += 1
         # create edge between source and students
@@ -380,55 +378,49 @@ def main(period):
         # flag = student[1] in the_list
 
         # Since we only capture 4 periods worth of data, we need to make sure we're treating the third set of 5 preferences correctly
-        period_offset = 0
-        if period > lunch:
-            period_offset = 1
+        # period_offset = 0
+        # if period > lunch:
+        #     period_offset = 1
 
         # Time to deal with duplicate and invalid preferences, first create a list of avaliable seminars for the period
-        if period != lunch:
-            temp = deepcopy(seminars_by_period[period])
+        # if period != lunch:
+        temp = deepcopy(seminars_by_period[period])
 
-            if period == 4 and student[1] == "yuknat.jack@doversherborn.org":
-                pass
-
-            # remove the seminars students have already been scheduled into
-            if period != 0:
-                for p in range(period):
-                    try:
-                        temp.remove(classes[schedules[p][student_index-1]])
-                    except:
-                        continue
-
-            replace = []
-            for pref in range(num_preferences_per_period):
+        # remove the seminars students have already been scheduled into
+        if period != 0:
+            for p in range(period):
                 try:
-                    temp.remove(student[initial_index + pref + (period - period_offset) * 5])
-                except ValueError:
-                    replace += [pref]
-                
-            if len(replace) > 0:
+                    temp.remove(classes[schedules[p][student_index-1]])
+                except:
+                    continue
 
-                print(
-                    f"Replacing {emailtoname[student[1]]}'s preferences period {period+1}"
-                )
-                for index, a in enumerate(replace):
+        replace = []
+        for pref in range(num_preferences_per_period):
+            try:
+                temp.remove(student[initial_index + pref + (period) * 5])
+            except ValueError:
+                replace += [pref]
+            
+        if len(replace) > 0:
 
-                    # If we're replacing the last preference, no need to shift anything over
-                    if a != 4:
-                        
-                        start = initial_index + (period - period_offset) * num_preferences_per_period + a + 1
-                        end = initial_index + (period - period_offset + 1) * num_preferences_per_period
+            print(
+                f"Replacing {emailtoname[student[1]]}'s preferences period {period+1}"
+            )
+            for index, a in enumerate(replace):
 
-                        for pref in range(start, end):
+                start = initial_index + (period) * num_preferences_per_period + a + 1
+                end = initial_index + (period + 1) * num_preferences_per_period
 
-                            student[pref - 1] = student[pref]
+                for pref in range(start, end):
 
-                    
-                        for pref in range(index+1, len(replace)):
-                            replace[pref] -= 1
+                    student[pref - 1] = student[pref]
 
-                    randomval = random.randint(0, len(temp)-1)
-                    student[initial_index + 4 + (period - period_offset) * num_preferences_per_period] = temp[randomval]
+            
+                for pref in range(index+1, len(replace)):
+                    replace[pref] -= 1
+
+                randomval = random.randint(0, len(temp)-1)
+                student[initial_index + 4 + (period) * num_preferences_per_period] = temp[randomval]
 
 
         for j in range(num_preferences_per_period):
@@ -437,17 +429,7 @@ def main(period):
             # period = 1: 1 2 3 4 5
             # period = 2: 6 7 8 9 10
 
-            # if student[1] in student_led_seminar_students and period == 4:
-            #     class_id = classes.index("Presenting")
-            # elif period == lunch:
-            #     if period == 2:
-            #         class_id = classes.index("First Lunch")
-            #     elif period == 3:
-            #         class_id = classes.index("Second Lunch")
-            # else:
-            # indent the below to under the "else" if student-run seminars ever come back!
-
-            pref_class = student[j + classes_per_period * (period - period_offset) + initial_index]
+            pref_class = student[j + classes_per_period * (period) + initial_index]
             if pref_class[-2:] == '""':
                 pref_class = pref_class[:-2]
             class_id = classes.index(pref_class)
@@ -543,12 +525,13 @@ def output():
 
     classes_csv.seek(0)
 
+    # creates a dictionary that maps classes to their room assignments for ALL periods
     class_to_room = {}
     for aclass in classes_reader:
         class_to_room[aclass[0]] = aclass[1:]
 
-    class_to_room["First Lunch"] = ["0", "0", "Lunch", "0", "0"]
-    class_to_room["Second Lunch"] = ["0", "0", "0", "Lunch", "0"]
+    # class_to_room["First Lunch"] = ["0", "0", "Lunch", "0", "0"]
+    # class_to_room["Second Lunch"] = ["0", "0", "0", "Lunch", "0"]
     # class_to_room["Presenting"] = ["0", "0", "0", "0", "107"]
 
     try:
@@ -556,7 +539,8 @@ def output():
     except FileExistsError:
         pass
     except PermissionError:
-        status.log("Could not create output folders")
+        # status.log("Could not create output folders")
+        print("Could not create output folders")
         return
 
     for i in range(len(emails)):
@@ -579,7 +563,8 @@ def output():
         for x in range(num_periods):
             fin.append(f"{rooms[x]}: {seminars[x]}\n")
 
-        status.log("Creating schedule for student " + name)
+        # status.log("Creating schedule for student " + name)
+        print("Creating schedule for " + name)
 
         f = open(f"{location}\\Students\\{name} Schedule.txt","w", newline='')
         f.writelines(fin)
