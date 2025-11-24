@@ -42,7 +42,7 @@ for x in range(len(the_list)):
 
 
 
-output_directory = ''
+output_directory = "Output"
 
 csv_file_paths = {}
 
@@ -117,8 +117,6 @@ def reset():
 
 def csv_processing():
     global num_periods, preferences_csv, preferences_reader, studenttograde, emailtoname, classes_csv, classes_reader, classes, class_capacities, total_emails, emails, master_list, schedules, csv_file_paths, seminars_by_period
-
-    output_directory = "Output/"
 
     try:
         os.mkdir(output_directory)
@@ -335,7 +333,7 @@ def main(period):
         source_costs += [0]
 
         # Time to deal with duplicate and invalid preferences, first create a list of avaliable seminars for the period
-        # if period != lunch:
+        # if they aren't presenting that is:
         temp = deepcopy(seminars_by_period[period])
 
         # remove the seminars students have already been scheduled into
@@ -478,7 +476,7 @@ def output():
 
     # class_to_room["First Lunch"] = ["0", "0", "Lunch", "0", "0"]
     # class_to_room["Second Lunch"] = ["0", "0", "0", "Lunch", "0"]
-    # class_to_room["Presenting"] = ["0", "0", "0", "0", "107"]
+    class_to_room["Presenting"] = ["Check Schedule", "Check Schedule", "Check Schedule"]
 
     try:
         os.mkdir(location + "\\Students")
@@ -536,7 +534,7 @@ def output():
                 status.log("Could not create output folders")
                 return
             
-            status.log(f"Creating attendance for class {classes[i]} period {j+1}")
+            # status.log(f"Creating attendance for class {classes[i]} period {j+1}")
 
             f = open(f"{location}\\SeminarAttendances\\{classes[i].split('-')[0]}Period{j+1}.csv", "w")
 
