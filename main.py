@@ -179,7 +179,13 @@ def csv_processing():
                 if room != "0":
                     seminars_by_period[x].append(aclass[0])
 
-        
+
+        Presenting_Seminar = ["Presenting","Check Schedule","Check Schedule","Check Schedule"]
+    
+        classes += [Presenting_Seminar[0]]
+        for x, room in enumerate(Presenting_Seminar[1:]):
+            class_capacities[x] += [int(roomCapacities[room.strip()])]
+            period_capacities[x] += int(roomCapacities[room.strip()])
 
         # Remove all duplicate students TODO: fill missing students !!!DONE!!!
         rows = []
@@ -254,7 +260,7 @@ def csv_processing():
             print(f"ERROR SCHEUDLING PERIOD {period}\n {e}")
             raise e
         # status.log(f"Period {period} scheduled")
-        print(f"Period {period} scheduled")
+        print(f"Period {period+1} scheduled")
 
     # status.log("Min Cost Flow solved, outputting...")
     print("Min Cost Flow solved,outputting...")
@@ -354,11 +360,10 @@ def main(period):
             )
             for index, a in enumerate(replace):
 
-                start = initial_index + (period) * num_preferences_per_period + a + 1
-                end = initial_index + (period + 1) * num_preferences_per_period
+                start = initial_index + (period) * num_preferences_per_period + a
+                end = initial_index + (period + 1) * num_preferences_per_period - 1
 
                 for pref in range(start, end):
-
                     student[pref - 1] = student[pref]
 
             
@@ -378,6 +383,7 @@ def main(period):
             pref_class = student[initial_index + pref + (period) * num_preferences_per_period]
             if pref_class[-2:] == '""':
                 pref_class = pref_class[:-2]
+            print(classes)
             class_id = classes.index(pref_class)
 
 
