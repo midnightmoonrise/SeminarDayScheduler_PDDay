@@ -18,20 +18,19 @@ for x in range(len(the_list)):
         first, last = the_list[x].split(" ")
         the_list[x] = last.lower() + first[0].lower() + "@doversherborn.org"
 
-# student_led_seminar_students = [
+# teacher_led_seminar_teachers = [
 #     "Jacob Spilman", "Nathan Zeng", "Vivian Kamphaus", "Alexander Mroz", "Patrick Driscoll", "Simon Hart", "Joshua Dias", "Gabriella Schroeder", "Dagny Abbett", "Nora Olson", "james davies", "tessa correll",
 #     "Armaan Tamber", "Cillian Moss", "Felix Giesen" 
 # ]
 
-# for x in range(len(student_led_seminar_students)):
-#     first, last = student_led_seminar_students[x].split(" ")
-#     student_led_seminar_students[x] = last.lower() + "." + first.lower() + "@doversherborn.org"
+# for x in range(len(teacher_led_seminar_teachers)):
+#     first, last = teacher_led_seminar_teachers[x].split(" ")
+#     teacher_led_seminar_teachers[x] = last.lower() + "." + first.lower() + "@doversherborn.org"
 
 # TODO: output to pdf
 # TODO: some output thing
-# TODO: STUDENT LED SEMINAR
 # TODO: Get rid of grade distinctions
-# TODO: Missing students change to most popular seminars (if time, lowest priority)
+# TODO: Missing teachers change to most popular seminars (if time, lowest priority)
 
 # duplicate preferences can be done during preproccesing >>> done
 # duplicate teachers has also been handled (incase that happens somehow)
@@ -42,7 +41,7 @@ for x in range(len(the_list)):
 
 
 
-output_directory = ''
+output_directory = "Output"
 
 csv_file_paths = {}
 
@@ -54,7 +53,8 @@ preferences_csv = 0
 
 teachertograde = {}
 emailtoname = {}
-# use a CSV File to read room capacities (may not be needed)
+
+# use a CSV File to read room capacities
 roomCapacities = {}
 with open("PD_CSV/roomlist.csv", newline='') as infile:
     reader = csv.DictReader(infile)
@@ -96,7 +96,7 @@ def reset():
     preferences_csv = 0
 
     # can consider removing this dictionary as it's not needed
-    studenttograde = {}
+    teachertograde = {}
     emailtoname = {}
 
     total_emails = []
@@ -105,7 +105,6 @@ def reset():
 
     classes_reader = 0
     num_periods = 3
-    num_preferences_per_period = 5
 
     seminars_by_period = [[] for _ in range(num_periods)]
     classes = []
@@ -116,9 +115,7 @@ def reset():
 
 
 def csv_processing():
-    global num_periods, preferences_csv, preferences_reader, studenttograde, emailtoname, classes_csv, classes_reader, classes, class_capacities, total_emails, emails, master_list, schedules, csv_file_paths, seminars_by_period
-
-    output_directory = "Output/"
+    global num_periods, preferences_csv, preferences_reader, teachertograde, emailtoname, classes_csv, classes_reader, classes, class_capacities, total_emails, emails, master_list, schedules, csv_file_paths, seminars_by_period
 
     try:
         os.mkdir(output_directory)
@@ -146,13 +143,13 @@ def csv_processing():
 
         # Temporarily commented out until mr conklin gets back with list of email to names and this can be hardcoded
         
-        # studenttograde_csv = open(csv_file_paths['grades'])
-        # studenttograde_reader = csv.reader(studenttograde_csv) 
+        # teachertograde_csv = open(csv_file_paths['grades'])
+        # teachertograde_reader = csv.reader(teachertograde_csv) 
 
         # writes emails in
-        # for student in studenttograde_reader: #studenttograde_reader just reads the grades CSV.
-        #     emailtoname[student[0]] = student[2]
-        #     emails += [student[0]]
+        # for teacher in teachertograde_reader: #teachertograde_reader just reads the grades CSV.
+        #     emailtoname[teacher[0]] = teacher[2]
+        #     emails += [teacher[0]]
 
         num_teachers = sum(1 for _ in preferences_reader)
 
@@ -195,9 +192,9 @@ def csv_processing():
             total_emails.append(email)
             for x, s in enumerate(missing_teachers):
                 if s == email:
-                    missing_students.pop(x)
+                    missing_teachers.pop(x)
 
-            print(student)
+            print(teacher)
 
         for email in missing_teachers:
 
@@ -205,20 +202,20 @@ def csv_processing():
 
             total_emails.append(email)
 
-            student = ["time", email]
+            teacher = ["time", email]
 
             for period in range(num_periods):
 
                 for _ in range(num_preferences_per_period):
-                    student.append(
+                    teacher.append(
                         seminars_by_period[period][random.randint(0, len(seminars_by_period[period])-1)]
                     )
 
             for _ in range(20):
                 teacher.append("")
 
-            studenttograde[email] = 0
-            rows += [student]
+            teachertograde[email] = 0
+            rows += [teacher]
         
         write_prefs = open("PD_CSV/testing_data_sample.csv", "at", newline='')
         preferences_writer = csv.writer(write_prefs)
@@ -229,8 +226,8 @@ def csv_processing():
 
         for period in range(num_periods):
             try:
-                # num = num_students/2 if (period == 2 or period == 3) else num_students
-                num = num_students # we shouldn't have to deal with funny situations so I'm commenting it out
+                # num = num_teachers/2 if (period == 2 or period == 3) else num_teachers
+                num = num_teachers # we shouldn't have to deal with funny situations so I'm commenting it out
                 assert (period_capacities[period] >= num)
             except AssertionError:
                 raise AssertionError(f"Not enough slots for teachers in period {period}, {period_capacities[period]} < {num}")
@@ -291,7 +288,7 @@ def main(period):
 
     # tldr loop through this shit twice because of the two costs thingy
 
-    class_costs = [-10000000000] * num_classes
+    class_costs = [-10000000000000] * num_classes
     class_costs += [0] * num_classes
     
     # priority to fill minimum
@@ -305,7 +302,7 @@ def main(period):
     # for example: time, name, yes/no, CLASS 1 would be index 3
     initial_index = 3
 
-    min_per_class = 1
+    min_per_class = 3
 
     
     
@@ -326,7 +323,7 @@ def main(period):
 
     ### CHANGE THIS!!!
 
-    for student in preferences_reader:
+    for teacher in preferences_reader:
 
         teacher_index += 1
         # create edge between source and teachers
@@ -335,52 +332,56 @@ def main(period):
         source_costs += [0]
 
         # Time to deal with duplicate and invalid preferences, first create a list of avaliable seminars for the period
-        # if period != lunch:
-        temp = deepcopy(seminars_by_period[period])
+        # if they aren't presenting that is:
+        if teacher[initial_index + period*num_preferences_per_period - 1] == "No":
+            temp = deepcopy(seminars_by_period[period])
 
-        # remove the seminars students have already been scheduled into
-        if period != 0:
-            for p in range(period):
+            # remove the seminars teachers have already been scheduled into
+            if period != 0:
+                for p in range(period):
+                    try:
+                        temp.remove(classes[schedules[p][teacher_index-1]])
+                    except:
+                        continue
+
+            replace = []
+            for pref in range(classes_per_period):
                 try:
-                    temp.remove(classes[schedules[p][student_index-1]])
-                except:
-                    continue
+                    temp.remove(teacher[initial_index + pref + (period) * num_preferences_per_period])
+                except ValueError:
+                    replace += [pref]
+                
+            if len(replace) > 0:
 
-        replace = []
-        for pref in range(classes_per_period):
-            try:
-                temp.remove(student[initial_index + pref + (period) * num_preferences_per_period])
-            except ValueError:
-                replace += [pref]
-            
-        if len(replace) > 0:
+                print(
+                    f"Replacing {emailtoname[teacher[1]]}'s preferences period {period+1}"
+                )
+                for index, a in enumerate(replace):
 
-            print(
-                f"Replacing {emailtoname[student[1]]}'s preferences period {period+1}"
-            )
-            for index, a in enumerate(replace):
+                    start = initial_index + (period) * num_preferences_per_period + a
+                    end = initial_index + (period + 1) * num_preferences_per_period - 1
 
-                start = initial_index + (period) * num_preferences_per_period + a
-                end = initial_index + (period + 1) * num_preferences_per_period - 1
+                    for pref in range(start, end):
+                        teacher[pref - 1] = teacher[pref]
 
-                for pref in range(start, end):
-                    student[pref - 1] = student[pref]
+                
+                    for pref in range(index+1, len(replace)):
+                        replace[pref] -= 1
 
-            
-                for pref in range(index+1, len(replace)):
-                    replace[pref] -= 1
-
-                randomval = random.randint(0, len(temp)-1)
-                student[initial_index + 4 + (period) * num_preferences_per_period] = temp[randomval]
+                    randomval = random.randint(0, len(temp)-1)
+                    teacher[initial_index + 4 + (period) * num_preferences_per_period] = temp[randomval]
+        else:
+            for pref in range(classes_per_period):
+                teacher[initial_index + period*num_preferences_per_period + pref] = "Presenting"
 
 
         for pref in range(classes_per_period):
-            # find ID of class that student wants
+            # find ID of class that teacher wants
             # insert at preference
             # period = 1: 1 2 3 4 5
             # period = 2: 6 7 8 9 10
 
-            pref_class = student[initial_index + pref + (period) * num_preferences_per_period]
+            pref_class = teacher[initial_index + pref + (period) * num_preferences_per_period]
             if pref_class[-2:] == '""':
                 pref_class = pref_class[:-2]
             print(classes)
@@ -391,9 +392,9 @@ def main(period):
             teacher_start_nodes += [num_classes + teacher_index]
             teacher_end_nodes += [class_id + 1]
             # j is cost, weighted by weight. heavier means more influence
-            weight = 10000 - student_index
+            weight = 10000 - teacher_index
 
-            student_costs += [weight * pref]
+            teacher_costs += [weight * pref]
 
     
 
@@ -478,7 +479,7 @@ def output():
 
     # class_to_room["First Lunch"] = ["0", "0", "Lunch", "0", "0"]
     # class_to_room["Second Lunch"] = ["0", "0", "0", "Lunch", "0"]
-    # class_to_room["Presenting"] = ["0", "0", "0", "0", "107"]
+    class_to_room["Presenting"] = ["Check Schedule", "Check Schedule", "Check Schedule"]
 
     try:
         os.mkdir(location + "\\teachers")
@@ -489,17 +490,17 @@ def output():
         print("Could not create output folders")
         return
 
-    for i in range(len(emails)):
+    for class_id in range(len(emails)):
 
-        name = emailtoname[total_emails[i]]
+        name = emailtoname[total_emails[class_id]]
 
         seminars = []
-        for j in range(num_periods):
-            seminars += [str(classes[schedules[j][i]])]
-        print(emails[i], seminars)
+        for period in range(num_periods):
+            seminars += [str(classes[schedules[period][class_id]])]
+        print(emails[class_id], seminars)
 
-        # if total_emails[i] in student_led_seminar_students:
-        #     seminars[4] = "Student Run Seminar - Arcade Extravaganza"
+        # if total_emails[i] in teacher_led_seminar_teachers:
+        #     seminars[4] = "teacher Run Seminar - Arcade Extravaganza"
 
         rooms = []
         for x, seminar in enumerate(seminars):
@@ -509,7 +510,7 @@ def output():
         for x in range(num_periods):
             fin.append(f"{rooms[x]}: {seminars[x]}\n")
 
-        # status.log("Creating schedule for student " + name)
+        # status.log("Creating schedule for teacher " + name)
         print("Creating schedule for " + name)
 
         f = open(f"{location}\\teachers\\{name} Schedule.txt","w", newline='')
@@ -522,11 +523,11 @@ def output():
     too_empty_seminars = []
     
     # master_list: it works like, master_list[class][period]
-    for i in range(len(classes)):
-        for j in range(num_periods):
-            print(classes[i], "Period " + str(j), master_list[i][j])
-            if class_to_room[classes[i]][j] == "0":
+    for class_id in range(len(classes)):
+        for period in range(num_periods):
+            if class_to_room[classes[class_id]][period] == "0":
                 continue
+            print(classes[class_id], "Period " + str(period), master_list[class_id][period])
 
             try:
                 os.mkdir(location + "\\SeminarAttendances")
@@ -536,16 +537,16 @@ def output():
                 status.log("Could not create output folders")
                 return
             
-            status.log(f"Creating attendance for class {classes[i]} period {j+1}")
+            # status.log(f"Creating attendance for class {classes[i]} period {j+1}")
 
-            f = open(f"{location}\\SeminarAttendances\\{classes[i].split('-')[0]}Period{j+1}.csv", "w")
+            f = open(f"{location}\\SeminarAttendances\\{classes[class_id].split('-')[0]}Period{period+1}.csv", "w")
 
 
-            names = deepcopy(master_list[i][j])
+            names = deepcopy(master_list[class_id][period])
             for x, email in enumerate(names):
                 names[x] = emailtoname[email]
             if len(names) < 5:
-                too_empty_seminars.append(f"{classes[i]} Period {j+1}")
+                too_empty_seminars.append(f"{classes[class_id]} Period {period+1}")
             f.write("\n".join(names))
             f.close()
 
