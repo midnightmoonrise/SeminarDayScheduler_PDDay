@@ -70,7 +70,7 @@ schedules = []
 
 classes_reader = 0
 num_periods = 3
-num_preferences_per_period = 5
+num_preferences_per_period = 6
 
 seminars_by_period = [[] for _ in range(num_periods)]
 
@@ -118,7 +118,7 @@ def reset():
 def csv_processing():
     global num_periods, preferences_csv, preferences_reader, studenttograde, emailtoname, classes_csv, classes_reader, classes, class_capacities, total_emails, emails, master_list, schedules, csv_file_paths, seminars_by_period
 
-    output_directory = "Output"
+    output_directory = "Output/"
 
     try:
         os.mkdir(output_directory)
@@ -190,8 +190,7 @@ def csv_processing():
             for x, s in enumerate(missing_students):
                 if s == email:
                     missing_students.pop(x)
-                    # if student[0] == "time":
-                    #     studenttograde[email] = 0
+
             print(student)
 
         for email in missing_students:
@@ -200,14 +199,10 @@ def csv_processing():
 
             total_emails.append(email)
 
-            student = ["time", email, "grade"]
+            student = ["time", email]
 
             for period in range(num_periods):
 
-                # if period == 3:
-                #     continue
-
-                # give them random preferences if they did not fill out the form
                 for _ in range(num_preferences_per_period):
                     student.append(
                         seminars_by_period[period][random.randint(0, len(seminars_by_period[period])-1)]
@@ -216,32 +211,15 @@ def csv_processing():
             for _ in range(20):
                 student.append("")
 
-            # if studenttograde[email] > 10:
-            #     lunch_capacities[1] -= 1
-            #     lunch_capacities[0] += 1
-
             studenttograde[email] = 0
             rows += [student]
         
-        write_prefs = open(csv_file_paths['prefs'], "at", newline='')
+        write_prefs = open("PD_CSV/testing_data_sample.csv", "at", newline='')
         preferences_writer = csv.writer(write_prefs)
         preferences_writer.writerows(rows)
         write_prefs.close()
 
         preferences_csv.seek(0)
-
-
-        # extras = [
-        #     # ["First Lunch", 0, 0, num_students, 0, 0],
-        #     # ["Second Lunch", 0, 0, 0, num_students, 0],
-        #     # ["Presenting", 0, 0, 0, 0, len(student_led_seminar_students)]
-        # ]
-
-        # for lunch in extras:
-        #     classes += [lunch[0]]
-        #     for x, capacity in enumerate(lunch[1:]):
-        #         class_capacities[x] += [int(capacity)]
-        
 
         for period in range(num_periods):
             try:
@@ -318,7 +296,7 @@ def main(period):
     classes_per_period = 5
 
     #index in the csv where periods start
-    # for example: time, name, grade, CLASS 1 would be index 3
+    # for example: time, name, yes/no, CLASS 1 would be index 3
     initial_index = 3
 
     min_per_class = 1
@@ -343,29 +321,12 @@ def main(period):
     ### CHANGE THIS!!!
 
     for student in preferences_reader:
-        # formatting to what we've been using (mfw)
-        # grade = studenttograde[student[1]]
-        temp_prefs = deepcopy(student)
-        for i in range(20):
-            # currently, this sets entries 2 to 26 to be the SEMINAR NAMES
-            # TODO: replace SEMINAR NAMES with ROOM NUMBERS or IDS
-            student[i + initial_index] = temp_prefs[i + initial_index] # used to be a +offset after initial_index
 
         student_index += 1
         # create edge between source and students
         source_start_nodes += [0]
         source_end_nodes += [num_classes + student_index]
         source_costs += [0]
-
-        # specific weightings that do not apply to PD
-        # senior_flag = (studenttograde[student[1]] == 12)
-        # missing_flag = (studenttograde[student[1]] == 0)
-        # flag = student[1] in the_list
-
-        # Since we only capture 4 periods worth of data, we need to make sure we're treating the third set of 5 preferences correctly
-        # period_offset = 0
-        # if period > lunch:
-        #     period_offset = 1
 
         # Time to deal with duplicate and invalid preferences, first create a list of avaliable seminars for the period
         # if period != lunch:
@@ -380,9 +341,9 @@ def main(period):
                     continue
 
         replace = []
-        for pref in range(num_preferences_per_period):
+        for pref in range(classes_per_period):
             try:
-                temp.remove(student[initial_index + pref + (period) * 5])
+                temp.remove(student[initial_index + pref + (period) * num_preferences_per_period])
             except ValueError:
                 replace += [pref]
             
@@ -408,13 +369,13 @@ def main(period):
                 student[initial_index + 4 + (period) * num_preferences_per_period] = temp[randomval]
 
 
-        for j in range(num_preferences_per_period):
+        for pref in range(classes_per_period):
             # find ID of class that student wants
             # insert at preference
             # period = 1: 1 2 3 4 5
             # period = 2: 6 7 8 9 10
 
-            pref_class = student[j + classes_per_period * (period) + initial_index]
+            pref_class = student[initial_index + pref + (period) * num_preferences_per_period]
             if pref_class[-2:] == '""':
                 pref_class = pref_class[:-2]
             class_id = classes.index(pref_class)
@@ -425,14 +386,8 @@ def main(period):
             student_end_nodes += [class_id + 1]
             # j is cost, weighted by weight. heavier means more influence
             weight = 10000 - student_index
-            # below are specific priorities - deleted because we aren't doing that for PD day
-            # if senior_flag:
-            #     weight *= 10
-            # elif missing_flag:
-            #     weight = int(weight/10)
-            # if flag:
-            #     weight *= 100
-            student_costs += [weight * j]
+
+            student_costs += [weight * pref]
 
     
 
