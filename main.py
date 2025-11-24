@@ -56,10 +56,13 @@ studenttograde = {}
 emailtoname = {}
 # use a CSV File to read room capacities (may not be needed)
 roomCapacities = {}
-with open("testing-csv-files/roomlist.csv", newline='') as infile:
+with open("PD_CSV/roomlist.csv", newline='') as infile:
     reader = csv.DictReader(infile)
     for row in reader:
+        print(row)
         roomCapacities[row["room"]] = row["capacity"]
+
+print(roomCapacities)
 
 total_emails = []
 emails = []
