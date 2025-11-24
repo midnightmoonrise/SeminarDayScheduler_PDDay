@@ -75,35 +75,16 @@ classes = []
 class_capacities = [[] for _ in range(num_periods)]
 master_list = []
 
-# class Status():
-#     #Web interface displays whatever this variable is set to
-#     currentLog = 'Starting...'
-
-#     #def __init__(this, stringvar: tk.StringVar, window: tk.Tk):
-#         #this.stringvar = stringvar
-#         #this.window = window
-
-#     def log(this, string):
-#         #this.stringvar.set(string)
-#         #this.window.update()
-#         #this.window.update_idletasks()
-#         this.currentLog = string
-#         print(string)
-
-#     #def get(this):
-#         #return this.stringvar.get()
-
-# status = Status()
 
 #Called by the web interface
-# def init(uploaded_csv_file_paths, uploaded_output_dir):
-#     global csv_file_paths, output_directory
+def init(uploaded_csv_file_paths, uploaded_output_dir):
+    global csv_file_paths, output_directory
 
-#     reset()
-#     csv_file_paths = uploaded_csv_file_paths
-#     output_directory = uploaded_output_dir
+    reset()
+    csv_file_paths = uploaded_csv_file_paths
+    output_directory = uploaded_output_dir
 
-#     csv_processing()
+    csv_processing()
 
 def reset():
     global preferences_csv, preferences_reader, studenttograde, emailtoname, total_emails, emails, schedules, classes_reader, num_periods, seminars_by_period, classes, class_capacities, master_list
@@ -134,6 +115,8 @@ def reset():
 def csv_processing():
     global num_periods, preferences_csv, preferences_reader, studenttograde, emailtoname, classes_csv, classes_reader, classes, class_capacities, total_emails, emails, master_list, schedules, csv_file_paths, seminars_by_period
 
+    output_directory = "Output"
+
     try:
         os.mkdir(output_directory)
     except FileExistsError:
@@ -153,28 +136,27 @@ def csv_processing():
         # DONE: Change variable to filename for hardcoding
         preferences_csv = open("PD_CSV/testing_data_sample.csv")
         preferences_reader = csv.reader(preferences_csv)
+
+        for x, teacher in enumerate(preferences_reader):
+            emailtoname[teacher[1]] = teacher[1].split('@')[0]
+            emails += [teacher[1]]
+
+        # Temporarily commented out until mr conklin gets back with list of email to names and this can be hardcoded
         
-        studenttograde_csv = open(csv_file_paths['grades'])
-        studenttograde_reader = csv.reader(studenttograde_csv)
+        # studenttograde_csv = open(csv_file_paths['grades'])
+        # studenttograde_reader = csv.reader(studenttograde_csv) 
+
+        # writes emails in
+        # for student in studenttograde_reader: #studenttograde_reader just reads the grades CSV.
+        #     emailtoname[student[0]] = student[2]
+        #     emails += [student[0]]
 
         num_students = sum(1 for _ in preferences_reader)
 
         preferences_csv.seek(0)
 
-        # lunch_capacities = [0, 0]
-
-        # writes emails in
-        for student in studenttograde_reader: #studenttograde_reader just reads the grades CSV.
-            # studenttograde[student[0]] = int(student[1])
-            emailtoname[student[0]] = student[2]
-            emails += [student[0]]
-            # if int(student[1]) < 11:
-            #     lunch_capacities[0] += 1
-            # else:
-            #     lunch_capacities[1] += 1
-
         schedules = []
-        for i in range(num_periods):
+        for _ in range(num_periods):
             schedules += [[0] * len(emails)]
 
         # CHANGE THIS TO HARD CODE AS WELL.
@@ -279,7 +261,7 @@ def csv_processing():
         print(a.args[0])
         return
     except Exception as e:
-        raise e.with_traceback()
+        raise e
     
     
 
@@ -612,3 +594,5 @@ def output():
     #Identified by web interface to tell if completed
     # status.log("Success")
     print("Success")
+
+csv_processing()
