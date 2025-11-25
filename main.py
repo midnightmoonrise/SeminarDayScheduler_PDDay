@@ -130,14 +130,13 @@ def csv_processing():
             emails += [teacher[1]]
         
         # MAKE SURE TO CHANGE THIS TO THE REAL TEACHER NAMES BEFORE YOU RUN THE REAL THING!!
-        teachertograde_csv = open("PD_CSV/faketeachernames.csv")
+        teachertograde_csv = open("PD_CSV/testingteachernames.csv")
         teachertograde_reader = csv.reader(teachertograde_csv) 
 
         # writes emails in
         for teacher in teachertograde_reader: #teachertograde_reader just reads the teachernames CSV.
             emailtoname[teacher[0]] = teacher[1]
             emails += [teacher[0]]
-
         print(emails)
 
         num_teachers = sum(1 for _ in preferences_reader)
@@ -182,8 +181,19 @@ def csv_processing():
             for x, s in enumerate(missing_teachers):
                 if s == email:
                     missing_teachers.pop(x)
-
-            # print(teacher)
+            
+            # Populates the seminar "Presenting" in the blank spots for teachers who are presenting
+            if teacher[2] == "Yes":
+                for i in range(3,8):
+                    teacher[i] = "Presenting"
+            if teacher[8] == "Yes":
+                for i in range(9,14):
+                    teacher[i] = "Presenting"
+            if teacher[14] == "Yes":
+                for i in range(15,20):
+                    teacher[i] = "Presenting"
+            print(teacher)
+        
         print(total_emails)
         print(f"Length: {len(total_emails)}")
         for email in missing_teachers:
@@ -200,7 +210,7 @@ def csv_processing():
                     teacher.append(
                         seminars_by_period[period][random.randint(0, len(seminars_by_period[period])-1)]
                     )
-            # HERE MAYBE YOU CAN REWRITE THE SCHEDULES FOR THE CASES FOR WHEN THE MISSING TEACHERS ARE PRESENTING. 
+            # Casework for when missing teachers are presenting.
             presenting_period_1 = ["Tom Duprey", "Mike Sweeney", "Alex Carroll"]
             presenting_period_2 = ["Tom Duprey", "Toni Milbourn", "Andrew McCorkle", "Mike Sweeney", "Alex Carroll", "Addie Perez Krebs"]
             presenting_period_3 = ["Toni Milbourn", "Andrew McCorkle", "Phil Rodino", "Addie Perez Krebs"]
@@ -379,7 +389,7 @@ def main(period):
             for pref in range(classes_per_period):
                 teacher[initial_index + period*num_preferences_per_period + pref] = "Presenting"
 
-
+        print("BEGIN PREFERENCES IN RANGE(CLASSES_PER_PERIOD)")
         for pref in range(classes_per_period):
             # find ID of class that teacher wants
             # insert at preference
@@ -389,8 +399,7 @@ def main(period):
             pref_class = teacher[initial_index + pref + (period) * num_preferences_per_period]
             if pref_class[-2:] == '""':
                 pref_class = pref_class[:-2]
-            print(classes)
-            class_id = classes.index(pref_class)
+            class_id = classes.index(pref_class.strip())
 
 
             # connect teacher nodes to classes
