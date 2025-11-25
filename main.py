@@ -18,15 +18,6 @@ for x in range(len(the_list)):
         first, last = the_list[x].split(" ")
         the_list[x] = last.lower() + first[0].lower() + "@doversherborn.org"
 
-# teacher_led_seminar_teachers = [
-#     "Jacob Spilman", "Nathan Zeng", "Vivian Kamphaus", "Alexander Mroz", "Patrick Driscoll", "Simon Hart", "Joshua Dias", "Gabriella Schroeder", "Dagny Abbett", "Nora Olson", "james davies", "tessa correll",
-#     "Armaan Tamber", "Cillian Moss", "Felix Giesen" 
-# ]
-
-# for x in range(len(teacher_led_seminar_teachers)):
-#     first, last = teacher_led_seminar_teachers[x].split(" ")
-#     teacher_led_seminar_teachers[x] = last.lower() + "." + first.lower() + "@doversherborn.org"
-
 # TODO: output to pdf
 # TODO: some output thing
 # TODO: Get rid of grade distinctions
@@ -59,10 +50,7 @@ roomCapacities = {}
 with open("PD_CSV/roomlist.csv", newline='') as infile:
     reader = csv.DictReader(infile)
     for row in reader:
-        print(row)
         roomCapacities[row["room"]] = row["capacity"]
-
-print(roomCapacities)
 
 total_emails = []
 emails = []
@@ -134,22 +122,22 @@ def csv_processing():
     # break try catch statements
     try:
         # DONE: Change variable to filename for hardcoding
-        preferences_csv = open("PD_CSV/testing_data_sample.csv")
+        preferences_csv = open("PD_CSV/small_testing_sample.csv")
         preferences_reader = csv.reader(preferences_csv)
 
-        for x, teacher in enumerate(preferences_reader):
-            emailtoname[teacher[1]] = teacher[1].split('@')[0]
-            emails += [teacher[1]]
-
-        # Temporarily commented out until mr conklin gets back with list of email to names and this can be hardcoded
+        # for x, teacher in enumerate(preferences_reader):
+        #     emailtoname[teacher[1]] = teacher[1].split('@')[0]
+        #     emails += [teacher[1]]
         
-        # teachertograde_csv = open(csv_file_paths['grades'])
-        # teachertograde_reader = csv.reader(teachertograde_csv) 
+        # MAKE SURE TO CHANGE THIS TO THE REAL TEACHER NAMES BEFORE YOU RUN THE REAL THING!!
+        teachertograde_csv = open("PD_CSV/testingteachernames.csv")
+        teachertograde_reader = csv.reader(teachertograde_csv) 
 
         # writes emails in
-        # for teacher in teachertograde_reader: #teachertograde_reader just reads the grades CSV.
-        #     emailtoname[teacher[0]] = teacher[2]
-        #     emails += [teacher[0]]
+        for teacher in teachertograde_reader: #teachertograde_reader just reads the teachernames CSV.
+            emailtoname[teacher[0]] = teacher[1]
+            emails += [teacher[0]]
+        print(emails)
 
         num_teachers = sum(1 for _ in preferences_reader)
 
@@ -165,7 +153,7 @@ def csv_processing():
 
         period_capacities = [0 for i in range(num_periods)]
 
-        # fills in class capacities in the classes list
+        # fills in class capacities in the classes list. THIS WORKS. 
         for aclass in classes_reader:
             print(aclass)
             classes += [aclass[0]]
@@ -175,8 +163,8 @@ def csv_processing():
 
                 if room != "0":
                     seminars_by_period[x].append(aclass[0])
-
-
+    
+        # specific case handling for a presenting "seminar"
         Presenting_Seminar = ["Presenting","Check Schedule","Check Schedule","Check Schedule"]
     
         classes += [Presenting_Seminar[0]]
@@ -184,7 +172,9 @@ def csv_processing():
             class_capacities[x] += [int(roomCapacities[room.strip()])]
             period_capacities[x] += int(roomCapacities[room.strip()])
 
-        # Remove all duplicate teachers TODO: fill missing teachers !!!DONE!!!
+        preferences_csv.seek(0)
+
+        # Populates missing_teachers with the missing teachers
         rows = []
         missing_teachers = deepcopy(emails)
         for teacher in preferences_reader:
@@ -193,9 +183,21 @@ def csv_processing():
             for x, s in enumerate(missing_teachers):
                 if s == email:
                     missing_teachers.pop(x)
-
+            
+            # Populates the seminar "Presenting" in the blank spots for teachers who are presenting
+            if teacher[2] == "Yes":
+                for i in range(3,8):
+                    teacher[i] = "Presenting"
+            if teacher[8] == "Yes":
+                for i in range(9,14):
+                    teacher[i] = "Presenting"
+            if teacher[14] == "Yes":
+                for i in range(15,20):
+                    teacher[i] = "Presenting"
             print(teacher)
-
+        
+        print(total_emails)
+        print(f"Length: {len(total_emails)}")
         for email in missing_teachers:
 
             print("MISSING teacher:", email)
@@ -210,14 +212,38 @@ def csv_processing():
                     teacher.append(
                         seminars_by_period[period][random.randint(0, len(seminars_by_period[period])-1)]
                     )
-
-            for _ in range(20):
-                teacher.append("")
-
+            # Casework for when missing teachers are presenting.
+            presenting_period_1 = ["Tom Duprey", "Mike Sweeney", "Alex Carroll"]
+            presenting_period_2 = ["Tom Duprey", "Toni Milbourn", "Andrew McCorkle", "Mike Sweeney", "Alex Carroll", "Addie Perez Krebs"]
+            presenting_period_3 = ["Toni Milbourn", "Andrew McCorkle", "Phil Rodino", "Addie Perez Krebs"]
+            # Add the Yes/No (No matters because the code to handle presenting checks for "No", not "Yes")
+            if emailtoname[teacher[1]] in presenting_period_1:
+                print(f"{emailtoname[teacher[1]]} is presenting period 1")
+                teacher[2] = "Yes"
+                for i in range(3,8):
+                    teacher[i] = "Presenting"
+            else:
+                teacher[2] = "No"
+            if emailtoname[teacher[1]] in presenting_period_2:
+                print(f"{emailtoname[teacher[1]]} is presenting period 2")
+                teacher[8] = "Yes"
+                for i in range(9,14):
+                    teacher[i] = "Presenting"
+            else:
+                teacher[8] = "No"
+            if emailtoname[teacher[1]] in presenting_period_3:
+                print(f"{emailtoname[teacher[1]]} is presenting period 3")
+                teacher[14] = "Yes"
+                for i in range(15,20):
+                    teacher[i] = "Presenting"
+            else:
+                teacher[14] = "No"
+                
             teachertograde[email] = 0
-            rows += [teacher]
-        
-        write_prefs = open("PD_CSV/testing_data_sample.csv", "at", newline='')
+            rows += [teacher]        
+
+        # The below writes the prefs for the missing teachers, and the missing teachers ONLY.
+        write_prefs = open("PD_CSV/tester.csv", "at", newline='')
         preferences_writer = csv.writer(write_prefs)
         preferences_writer.writerows(rows)
         write_prefs.close()
@@ -226,8 +252,7 @@ def csv_processing():
 
         for period in range(num_periods):
             try:
-                # num = num_teachers/2 if (period == 2 or period == 3) else num_teachers
-                num = num_teachers # we shouldn't have to deal with funny situations so I'm commenting it out
+                num = num_teachers 
                 assert (period_capacities[period] >= num)
             except AssertionError:
                 raise AssertionError(f"Not enough slots for teachers in period {period}, {period_capacities[period]} < {num}")
@@ -239,6 +264,8 @@ def csv_processing():
             for j in range(num_periods):
                 ohio.append([])
             master_list.append(ohio)
+
+    
 
     except AssertionError as a:
        # status.log(a.args[0])
@@ -253,7 +280,7 @@ def csv_processing():
         try:
             main(period)
         except Exception as e:
-            status.log(f"ERROR SCHEUDLING PERIOD {period}\n {e}")
+            # status.log(f"ERROR SCHEUDLING PERIOD {period}\n {e}")
             print(f"ERROR SCHEUDLING PERIOD {period}\n {e}")
             raise e
         # status.log(f"Period {period} scheduled")
@@ -374,7 +401,7 @@ def main(period):
             for pref in range(classes_per_period):
                 teacher[initial_index + period*num_preferences_per_period + pref] = "Presenting"
 
-
+        print("BEGIN PREFERENCES IN RANGE(CLASSES_PER_PERIOD)")
         for pref in range(classes_per_period):
             # find ID of class that teacher wants
             # insert at preference
@@ -384,8 +411,7 @@ def main(period):
             pref_class = teacher[initial_index + pref + (period) * num_preferences_per_period]
             if pref_class[-2:] == '""':
                 pref_class = pref_class[:-2]
-            print(classes)
-            class_id = classes.index(pref_class)
+            class_id = classes.index(pref_class.strip())
 
 
             # connect teacher nodes to classes
@@ -476,9 +502,6 @@ def output():
     class_to_room = {}
     for aclass in classes_reader:
         class_to_room[aclass[0]] = aclass[1:]
-
-    # class_to_room["First Lunch"] = ["0", "0", "Lunch", "0", "0"]
-    # class_to_room["Second Lunch"] = ["0", "0", "0", "Lunch", "0"]
     class_to_room["Presenting"] = ["Check Schedule", "Check Schedule", "Check Schedule"]
 
     try:
