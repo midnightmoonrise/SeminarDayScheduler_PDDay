@@ -125,9 +125,9 @@ def csv_processing():
         preferences_csv = open("PD_CSV/small_testing_sample.csv")
         preferences_reader = csv.reader(preferences_csv)
 
-        for x, teacher in enumerate(preferences_reader):
-            emailtoname[teacher[1]] = teacher[1].split('@')[0]
-            emails += [teacher[1]]
+        # for x, teacher in enumerate(preferences_reader):
+        #     emailtoname[teacher[1]] = teacher[1].split('@')[0]
+        #     emails += [teacher[1]]
         
         # MAKE SURE TO CHANGE THIS TO THE REAL TEACHER NAMES BEFORE YOU RUN THE REAL THING!!
         teachertograde_csv = open("PD_CSV/testingteachernames.csv")
@@ -172,6 +172,8 @@ def csv_processing():
             class_capacities[x] += [int(roomCapacities[room.strip()])]
             period_capacities[x] += int(roomCapacities[room.strip()])
 
+        preferences_csv.seek(0)
+
         # Populates missing_teachers with the missing teachers
         rows = []
         missing_teachers = deepcopy(emails)
@@ -214,24 +216,32 @@ def csv_processing():
             presenting_period_1 = ["Tom Duprey", "Mike Sweeney", "Alex Carroll"]
             presenting_period_2 = ["Tom Duprey", "Toni Milbourn", "Andrew McCorkle", "Mike Sweeney", "Alex Carroll", "Addie Perez Krebs"]
             presenting_period_3 = ["Toni Milbourn", "Andrew McCorkle", "Phil Rodino", "Addie Perez Krebs"]
+            # Add the Yes/No (No matters because the code to handle presenting checks for "No", not "Yes")
             if emailtoname[teacher[1]] in presenting_period_1:
                 print(f"{emailtoname[teacher[1]]} is presenting period 1")
                 teacher[2] = "Yes"
                 for i in range(3,8):
                     teacher[i] = "Presenting"
+            else:
+                teacher[2] = "No"
             if emailtoname[teacher[1]] in presenting_period_2:
                 print(f"{emailtoname[teacher[1]]} is presenting period 2")
                 teacher[8] = "Yes"
                 for i in range(9,14):
                     teacher[i] = "Presenting"
+            else:
+                teacher[8] = "No"
             if emailtoname[teacher[1]] in presenting_period_3:
                 print(f"{emailtoname[teacher[1]]} is presenting period 3")
                 teacher[14] = "Yes"
                 for i in range(15,20):
                     teacher[i] = "Presenting"
+            else:
+                teacher[14] = "No"
                 
             teachertograde[email] = 0
             rows += [teacher]        
+
         # The below writes the prefs for the missing teachers, and the missing teachers ONLY.
         write_prefs = open("PD_CSV/tester.csv", "at", newline='')
         preferences_writer = csv.writer(write_prefs)
@@ -254,6 +264,8 @@ def csv_processing():
             for j in range(num_periods):
                 ohio.append([])
             master_list.append(ohio)
+
+    
 
     except AssertionError as a:
        # status.log(a.args[0])
