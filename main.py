@@ -52,7 +52,6 @@ with open("PD_CSV/roomlist.csv", newline='') as infile:
     for row in reader:
         roomCapacities[row["room"]] = row["capacity"]
 
-total_emails = []
 emails = []
 schedules = []
 
@@ -102,7 +101,7 @@ def reset():
 
 
 def csv_processing():
-    global num_periods, preferences_csv, preferences_reader, teachertograde, emailtoname, classes_csv, classes_reader, classes, class_capacities, total_emails, emails, master_list, schedules, csv_file_paths, seminars_by_period
+    global num_periods, preferences_csv, preferences_reader, teachertograde, emailtoname, classes_csv, classes_reader, classes, class_capacities, emails, master_list, schedules, csv_file_paths, seminars_by_period
 
     try:
         os.mkdir(output_directory)
@@ -180,7 +179,6 @@ def csv_processing():
         missing_teachers = deepcopy(emails)
         for teacher in preferences_reader:
             email = teacher[1]
-            total_emails.append(email)
             for x, s in enumerate(missing_teachers):
                 if s == email:
                     missing_teachers.pop(x)
@@ -199,13 +197,9 @@ def csv_processing():
             print(teacher)
             rows += [teacher]
         
-        print(total_emails)
-        print(f"Length: {len(total_emails)}")
         for email in missing_teachers:
 
             print("MISSING teacher:", email)
-
-            total_emails.append(email)
 
             teacher = ["time", email]
 
@@ -304,7 +298,7 @@ def csv_processing():
 
 def main(period):
 
-    global preferences_csv, preferences_reader, classes, class_capacities, teachertograde, total_emails, emails, schedules, seminars_by_period
+    global preferences_csv, preferences_reader, classes, class_capacities, teachertograde, emails, schedules, seminars_by_period
 
     """Solving an Assignment Problem with MinCostFlow."""
     # Instantiate a SimpleMinCostFlow solver.
@@ -331,7 +325,7 @@ def main(period):
     # priority to fill minimum
     
 
-    teacher_index = 0
+    teacher_index = 0 
 
     classes_per_period = 5
 
@@ -498,7 +492,7 @@ def main(period):
                 #     % (emails[smcf.tail(arc) - num_classes - 1], classes[smcf.head(arc) - 1], smcf.unit_cost(arc), smcf.flow(arc))
                 # )
                 schedules[period][smcf.tail(arc) - num_classes - 1] = smcf.head(arc) - 1
-                master_list[smcf.head(arc) - 1][period].append(total_emails[smcf.tail(arc) - num_classes - 1])
+                master_list[smcf.head(arc) - 1][period].append(emails[smcf.tail(arc) - num_classes - 1])
 
                 # print(master_list[0][period])
 
@@ -507,7 +501,7 @@ def main(period):
 
 def output():
  
-    global total_emails, emails, num_periods, schedules, classes, master_list, output_directory, classes_csv, classes_reader
+    global emails, num_periods, schedules, classes, master_list, output_directory, classes_csv, classes_reader
 
     location = output_directory
 
@@ -530,14 +524,14 @@ def output():
 
     for class_id in range(len(emails)):
 
-        name = emailtoname[total_emails[class_id]]
+        name = emailtoname[emails[class_id]]
 
         seminars = []
         for period in range(num_periods):
             seminars += [str(classes[schedules[period][class_id]])]
         print(emails[class_id], seminars)
 
-        # if total_emails[i] in teacher_led_seminar_teachers:
+        # if emails[i] in teacher_led_seminar_teachers:
         #     seminars[4] = "teacher Run Seminar - Arcade Extravaganza"
 
         rooms = []
