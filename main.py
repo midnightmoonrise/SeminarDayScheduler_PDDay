@@ -151,7 +151,7 @@ def csv_processing():
         classes_csv = open("PD_CSV/seminar_roomassignments.csv")
         classes_reader = csv.reader(classes_csv)
 
-        period_capacities = [0 for i in range(num_periods)]
+        period_capacities = [0 for _ in range(num_periods)]
 
         # fills in class capacities in the classes list. THIS WORKS. 
         for aclass in classes_reader:
@@ -247,6 +247,8 @@ def csv_processing():
             rows += [teacher]        
 
         # The below writes the prefs for the missing teachers, and the missing teachers ONLY.
+        # rn it actually writes all of them, including updating any empty preferences after a "Yes" to "Presenting".
+        # realistically this shold open to the same file that we read prefrences from
         write_prefs = open("PD_CSV/small_testing_sample.csv", "wt", newline='')
         preferences_writer = csv.writer(write_prefs)
         preferences_writer.writerows(rows)
@@ -298,7 +300,7 @@ def csv_processing():
 
 def main(period):
 
-    global preferences_csv, preferences_reader, classes, class_capacities, teachertograde, emails, schedules, seminars_by_period
+    global preferences_csv, preferences_reader, classes, class_capacities, emails, schedules, seminars_by_period
 
     """Solving an Assignment Problem with MinCostFlow."""
     # Instantiate a SimpleMinCostFlow solver.
@@ -374,9 +376,6 @@ def main(period):
                         temp.remove(classes[schedules[p][teacher_index-1]])
                     except:
                         continue
-
-            if teacher[1] == "levasseurc@doversherborn.org":
-                replace_pref = 1
 
             replace = []
             for pref in range(classes_per_period):
@@ -522,14 +521,14 @@ def output():
         print("Could not create output folders")
         return
 
-    for class_id in range(len(emails)):
+    for teacher_id in range(len(emails)):
 
-        name = emailtoname[emails[class_id]]
+        name = emailtoname[emails[teacher_id]]
 
         seminars = []
         for period in range(num_periods):
-            seminars += [str(classes[schedules[period][class_id]])]
-        print(emails[class_id], seminars)
+            seminars += [str(classes[schedules[period][teacher_id]])]
+        print(emails[teacher_id], seminars)
 
         # if emails[i] in teacher_led_seminar_teachers:
         #     seminars[4] = "teacher Run Seminar - Arcade Extravaganza"
@@ -552,7 +551,7 @@ def output():
     # status.log("Schedules complete")
     print("Schedules complete")
 
-    too_empty_seminars = []
+    too_empty_seminars: list[str] = []
     
     # master_list: it works like, master_list[class][period]
     for class_id in range(len(classes)):
@@ -582,9 +581,14 @@ def output():
             f.write("\n".join(names))
             f.close()
 
-    print(too_empty_seminars)
+    print("These classes don't have enough people:\n")
+
+    # print(too_empty_seminars)
     for s in too_empty_seminars:
-        print(s)
+        class_id = classes.index(s[:s.index("Period")].strip())
+        period = int(s[-1])-1
+        people = master_list[class_id][period]
+        print(s, f"with {len(people)} attendees:\n", people, "\n")
 
     # status.log("Master Lists complete")
     print("Master lists complete")
