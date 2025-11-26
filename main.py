@@ -52,7 +52,6 @@ with open("PD_CSV/roomlist.csv", newline='') as infile:
     for row in reader:
         roomCapacities[row["room"]] = row["capacity"]
 
-total_emails = []
 emails = []
 schedules = []
 
@@ -102,7 +101,7 @@ def reset():
 
 
 def csv_processing():
-    global num_periods, preferences_csv, preferences_reader, teachertograde, emailtoname, classes_csv, classes_reader, classes, class_capacities, total_emails, emails, master_list, schedules, csv_file_paths, seminars_by_period
+    global num_periods, preferences_csv, preferences_reader, teachertograde, emailtoname, classes_csv, classes_reader, classes, class_capacities, emails, master_list, schedules, csv_file_paths, seminars_by_period
 
     try:
         os.mkdir(output_directory)
@@ -123,7 +122,7 @@ def csv_processing():
     # break try catch statements
     try:
         # DONE: Change variable to filename for hardcoding
-        preferences_csv = open("PD_CSV/small_testing_sample.csv")
+        preferences_csv = open("PD_CSV/preferences_data.csv")
         preferences_reader = csv.reader(preferences_csv)
 
         # for x, teacher in enumerate(preferences_reader):
@@ -131,7 +130,7 @@ def csv_processing():
         #     emails += [teacher[1]]
         
         # MAKE SURE TO CHANGE THIS TO THE REAL TEACHER NAMES BEFORE YOU RUN THE REAL THING!!
-        teachertograde_csv = open("PD_CSV/testingteachernames.csv")
+        teachertograde_csv = open("PD_CSV/teachernames.csv")
         teachertograde_reader = csv.reader(teachertograde_csv) 
 
         # writes emails in
@@ -152,7 +151,7 @@ def csv_processing():
         classes_csv = open("PD_CSV/seminar_roomassignments.csv")
         classes_reader = csv.reader(classes_csv)
 
-        period_capacities = [0 for i in range(num_periods)]
+        period_capacities = [0 for _ in range(num_periods)]
 
         # fills in class capacities in the classes list. THIS WORKS. 
         for aclass in classes_reader:
@@ -180,7 +179,6 @@ def csv_processing():
         missing_teachers = deepcopy(emails)
         for teacher in preferences_reader:
             email = teacher[1]
-            total_emails.append(email)
             for x, s in enumerate(missing_teachers):
                 if s == email:
                     missing_teachers.pop(x)
@@ -199,13 +197,9 @@ def csv_processing():
             print(teacher)
             rows += [teacher]
         
-        print(total_emails)
-        print(f"Length: {len(total_emails)}")
         for email in missing_teachers:
 
             print("MISSING teacher:", email)
-
-            total_emails.append(email)
 
             teacher = ["time", email]
 
@@ -253,6 +247,8 @@ def csv_processing():
             rows += [teacher]        
 
         # The below writes the prefs for the missing teachers, and the missing teachers ONLY.
+        # rn it actually writes all of them, including updating any empty preferences after a "Yes" to "Presenting".
+        # realistically this shold open to the same file that we read prefrences from
         write_prefs = open("PD_CSV/small_testing_sample.csv", "wt", newline='')
         preferences_writer = csv.writer(write_prefs)
         preferences_writer.writerows(rows)
@@ -304,7 +300,7 @@ def csv_processing():
 
 def main(period):
 
-    global preferences_csv, preferences_reader, classes, class_capacities, teachertograde, total_emails, emails, schedules, seminars_by_period
+    global preferences_csv, preferences_reader, classes, class_capacities, emails, schedules, seminars_by_period
 
     """Solving an Assignment Problem with MinCostFlow."""
     # Instantiate a SimpleMinCostFlow solver.
@@ -331,7 +327,7 @@ def main(period):
     # priority to fill minimum
     
 
-    teacher_index = 0
+    teacher_index = 0 
 
     classes_per_period = 5
 
@@ -380,9 +376,6 @@ def main(period):
                         temp.remove(classes[schedules[p][teacher_index-1]])
                     except:
                         continue
-
-            if teacher[1] == "levasseurc@doversherborn.org":
-                replace_pref = 1
 
             replace = []
             for pref in range(classes_per_period):
@@ -498,7 +491,7 @@ def main(period):
                 #     % (emails[smcf.tail(arc) - num_classes - 1], classes[smcf.head(arc) - 1], smcf.unit_cost(arc), smcf.flow(arc))
                 # )
                 schedules[period][smcf.tail(arc) - num_classes - 1] = smcf.head(arc) - 1
-                master_list[smcf.head(arc) - 1][period].append(total_emails[smcf.tail(arc) - num_classes - 1])
+                master_list[smcf.head(arc) - 1][period].append(emails[smcf.tail(arc) - num_classes - 1])
 
                 # print(master_list[0][period])
 
@@ -507,7 +500,7 @@ def main(period):
 
 def output():
  
-    global total_emails, emails, num_periods, schedules, classes, master_list, output_directory, classes_csv, classes_reader
+    global emails, num_periods, schedules, classes, master_list, output_directory, classes_csv, classes_reader
 
     location = output_directory
 
@@ -528,16 +521,16 @@ def output():
         print("Could not create output folders")
         return
 
-    for class_id in range(len(emails)):
+    for teacher_id in range(len(emails)):
 
-        name = emailtoname[total_emails[class_id]]
+        name = emailtoname[emails[teacher_id]]
 
         seminars = []
         for period in range(num_periods):
-            seminars += [str(classes[schedules[period][class_id]])]
-        print(emails[class_id], seminars)
+            seminars += [str(classes[schedules[period][teacher_id]])]
+        print(emails[teacher_id], seminars)
 
-        # if total_emails[i] in teacher_led_seminar_teachers:
+        # if emails[i] in teacher_led_seminar_teachers:
         #     seminars[4] = "teacher Run Seminar - Arcade Extravaganza"
 
         rooms = []
@@ -558,7 +551,7 @@ def output():
     # status.log("Schedules complete")
     print("Schedules complete")
 
-    too_empty_seminars = []
+    too_empty_seminars: list[str] = []
     
     # master_list: it works like, master_list[class][period]
     for class_id in range(len(classes)):
@@ -588,9 +581,14 @@ def output():
             f.write("\n".join(names))
             f.close()
 
-    print(too_empty_seminars)
+    print("These classes don't have enough people:\n")
+
+    # print(too_empty_seminars)
     for s in too_empty_seminars:
-        print(s)
+        class_id = classes.index(s[:s.index("Period")].strip())
+        period = int(s[-1])-1
+        people = master_list[class_id][period]
+        print(s, f"with {len(people)} attendees:\n", people, "\n")
 
     # status.log("Master Lists complete")
     print("Master lists complete")
