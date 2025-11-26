@@ -52,6 +52,7 @@ with open("PD_CSV/roomlist.csv", newline='') as infile:
     for row in reader:
         roomCapacities[row["room"]] = row["capacity"]
 
+ordered_emails = []
 emails = []
 schedules = []
 
@@ -77,7 +78,7 @@ def init(uploaded_csv_file_paths, uploaded_output_dir):
     csv_processing()
 
 def reset():
-    global preferences_csv, preferences_reader, teachertograde, emailtoname, emails, schedules, classes_reader, num_periods, seminars_by_period, classes, class_capacities, master_list
+    global preferences_csv, preferences_reader, teachertograde, emailtoname, ordered_emails, emails, schedules, classes_reader, num_periods, seminars_by_period, classes, class_capacities, master_list
 
     preferences_reader = 0
     preferences_csv = 0
@@ -86,6 +87,7 @@ def reset():
     teachertograde = {}
     emailtoname = {}
 
+    ordered_emails = []
     emails = []
     schedules = []
 
@@ -101,7 +103,7 @@ def reset():
 
 
 def csv_processing():
-    global num_periods, preferences_csv, preferences_reader, teachertograde, emailtoname, classes_csv, classes_reader, classes, class_capacities, emails, master_list, schedules, csv_file_paths, seminars_by_period
+    global num_periods, preferences_csv, preferences_reader, teachertograde, emailtoname, classes_csv, classes_reader, classes, class_capacities, ordered_emails, emails, master_list, schedules, csv_file_paths, seminars_by_period
 
     try:
         os.mkdir(output_directory)
@@ -179,9 +181,12 @@ def csv_processing():
         missing_teachers = deepcopy(emails)
         for teacher in preferences_reader:
             email = teacher[1]
-            for x, s in enumerate(missing_teachers):
-                if s == email:
-                    missing_teachers.pop(x)
+
+            # sorting them according to the preferences order
+            ordered_emails.append(email)
+
+            # Remove it from this list because its not missing
+            missing_teachers.pop(missing_teachers.index(email))
 
             # Populates the seminar "Presenting" in the blank spots for teachers who are presenting
             if teacher[2] == "Yes":
@@ -197,7 +202,11 @@ def csv_processing():
             print(teacher)
             rows += [teacher]
         
+
         for email in missing_teachers:
+
+            # sorting them according to the preferences order
+            ordered_emails.append(email)
 
             print("MISSING teacher:", email)
 
@@ -249,7 +258,7 @@ def csv_processing():
         # The below writes the prefs for the missing teachers, and the missing teachers ONLY.
         # rn it actually writes all of them, including updating any empty preferences after a "Yes" to "Presenting".
         # realistically this shold open to the same file that we read prefrences from
-        write_prefs = open("PD_CSV/small_testing_sample.csv", "wt", newline='')
+        write_prefs = open("PD_CSV/preferences_data.csv", "wt", newline='')
         preferences_writer = csv.writer(write_prefs)
         preferences_writer.writerows(rows)
         write_prefs.close()
@@ -300,7 +309,7 @@ def csv_processing():
 
 def main(period):
 
-    global preferences_csv, preferences_reader, classes, class_capacities, emails, schedules, seminars_by_period
+    global preferences_csv, preferences_reader, classes, class_capacities, ordered_emails, emails, schedules, seminars_by_period
 
     """Solving an Assignment Problem with MinCostFlow."""
     # Instantiate a SimpleMinCostFlow solver.
@@ -321,8 +330,9 @@ def main(period):
 
     # tldr loop through this shit twice because of the two costs thingy
 
-    class_costs = [-10000000000] * num_classes
-    class_costs += [0] * num_classes
+    # they were backwards for some reason???
+    class_costs = [0] * num_classes
+    class_costs += [-10000000] * num_classes
     
     # priority to fill minimum
     
@@ -481,6 +491,7 @@ def main(period):
         print("Total cost = ", smcf.optimal_cost())
         print()
         for arc in range(smcf.num_arcs()):
+
             if smcf.flow(arc) > 0 and smcf.tail(arc) != source and smcf.head(arc) != sink:
 
                 if smcf.tail(arc) - num_classes - 1 >= len(emails):
@@ -491,7 +502,7 @@ def main(period):
                 #     % (emails[smcf.tail(arc) - num_classes - 1], classes[smcf.head(arc) - 1], smcf.unit_cost(arc), smcf.flow(arc))
                 # )
                 schedules[period][smcf.tail(arc) - num_classes - 1] = smcf.head(arc) - 1
-                master_list[smcf.head(arc) - 1][period].append(emails[smcf.tail(arc) - num_classes - 1])
+                master_list[smcf.head(arc) - 1][period].append(ordered_emails[smcf.tail(arc) - num_classes - 1])
 
                 # print(master_list[0][period])
 
@@ -500,7 +511,7 @@ def main(period):
 
 def output():
  
-    global emails, num_periods, schedules, classes, master_list, output_directory, classes_csv, classes_reader
+    global ordered_emails, emails, num_periods, schedules, classes, master_list, output_directory, classes_csv, classes_reader
 
     location = output_directory
 
@@ -523,12 +534,12 @@ def output():
 
     for teacher_id in range(len(emails)):
 
-        name = emailtoname[emails[teacher_id]]
+        name = emailtoname[ordered_emails[teacher_id]]
 
         seminars = []
         for period in range(num_periods):
             seminars += [str(classes[schedules[period][teacher_id]])]
-        print(emails[teacher_id], seminars)
+        print(ordered_emails[teacher_id], seminars)
 
         # if emails[i] in teacher_led_seminar_teachers:
         #     seminars[4] = "teacher Run Seminar - Arcade Extravaganza"
