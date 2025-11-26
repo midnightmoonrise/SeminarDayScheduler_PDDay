@@ -122,7 +122,7 @@ def csv_processing():
     # break try catch statements
     try:
         # DONE: Change variable to filename for hardcoding
-        preferences_csv = open("PD_CSV/small_testing_sample.csv")
+        preferences_csv = open("PD_CSV/preferences_data.csv")
         preferences_reader = csv.reader(preferences_csv)
 
         # for x, teacher in enumerate(preferences_reader):
@@ -130,7 +130,7 @@ def csv_processing():
         #     emails += [teacher[1]]
         
         # MAKE SURE TO CHANGE THIS TO THE REAL TEACHER NAMES BEFORE YOU RUN THE REAL THING!!
-        teachertograde_csv = open("PD_CSV/testingteachernames.csv")
+        teachertograde_csv = open("PD_CSV/teachernames.csv")
         teachertograde_reader = csv.reader(teachertograde_csv) 
 
         # writes emails in
