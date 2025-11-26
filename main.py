@@ -78,7 +78,7 @@ def init(uploaded_csv_file_paths, uploaded_output_dir):
     csv_processing()
 
 def reset():
-    global preferences_csv, preferences_reader, teachertograde, emailtoname, total_emails, emails, schedules, classes_reader, num_periods, seminars_by_period, classes, class_capacities, master_list
+    global preferences_csv, preferences_reader, teachertograde, emailtoname, emails, schedules, classes_reader, num_periods, seminars_by_period, classes, class_capacities, master_list
 
     preferences_reader = 0
     preferences_csv = 0
@@ -87,7 +87,6 @@ def reset():
     teachertograde = {}
     emailtoname = {}
 
-    total_emails = []
     emails = []
     schedules = []
 
@@ -110,14 +109,16 @@ def csv_processing():
     except FileExistsError:
         pass
     except PermissionError:
-        status.log("Cannot create/open target directory")
+        # status.log("Cannot create/open target directory")
         return
     
     for path in csv_file_paths:
         try:
             assert path
-        except AssertionError:
-            status.log()
+        except AssertionError as e:
+            # status.log()
+            raise e
+
 
     # break try catch statements
     try:
@@ -183,7 +184,7 @@ def csv_processing():
             for x, s in enumerate(missing_teachers):
                 if s == email:
                     missing_teachers.pop(x)
-            
+
             # Populates the seminar "Presenting" in the blank spots for teachers who are presenting
             if teacher[2] == "Yes":
                 for i in range(3,8):
@@ -194,7 +195,9 @@ def csv_processing():
             if teacher[14] == "Yes":
                 for i in range(15,20):
                     teacher[i] = "Presenting"
+
             print(teacher)
+            rows += [teacher]
         
         print(total_emails)
         print(f"Length: {len(total_emails)}")
@@ -206,11 +209,18 @@ def csv_processing():
 
             teacher = ["time", email]
 
+            temp = deepcopy(seminars_by_period)
+
             for period in range(num_periods):
 
                 for _ in range(num_preferences_per_period):
+
+                    r = random.randint(0, len(temp[period])-1)
+                    sem = temp[period][r]
+                    temp[period].pop(r)
+
                     teacher.append(
-                        seminars_by_period[period][random.randint(0, len(seminars_by_period[period])-1)]
+                        sem
                     )
             # Casework for when missing teachers are presenting.
             presenting_period_1 = ["Tom Duprey", "Mike Sweeney", "Alex Carroll"]
@@ -243,7 +253,7 @@ def csv_processing():
             rows += [teacher]        
 
         # The below writes the prefs for the missing teachers, and the missing teachers ONLY.
-        write_prefs = open("PD_CSV/tester.csv", "at", newline='')
+        write_prefs = open("PD_CSV/small_testing_sample.csv", "wt", newline='')
         preferences_writer = csv.writer(write_prefs)
         preferences_writer.writerows(rows)
         write_prefs.close()
@@ -294,7 +304,7 @@ def csv_processing():
 
 def main(period):
 
-    global preferences_csv, preferences_reader, classes, class_capacities, teachertograde, total_emails, emails, schedules, status, seminars_by_period
+    global preferences_csv, preferences_reader, classes, class_capacities, teachertograde, total_emails, emails, schedules, seminars_by_period
 
     """Solving an Assignment Problem with MinCostFlow."""
     # Instantiate a SimpleMinCostFlow solver.
@@ -315,7 +325,7 @@ def main(period):
 
     # tldr loop through this shit twice because of the two costs thingy
 
-    class_costs = [-10000000000000] * num_classes
+    class_costs = [-10000000000] * num_classes
     class_costs += [0] * num_classes
     
     # priority to fill minimum
@@ -371,6 +381,9 @@ def main(period):
                     except:
                         continue
 
+            if teacher[1] == "levasseurc@doversherborn.org":
+                replace_pref = 1
+
             replace = []
             for pref in range(classes_per_period):
                 try:
@@ -381,22 +394,26 @@ def main(period):
             if len(replace) > 0:
 
                 print(
-                    f"Replacing {emailtoname[teacher[1]]}'s preferences period {period+1}"
+                    f"Replacing {emailtoname[teacher[1]]}'s preferences {replace} period {period+1}"
                 )
-                for index, a in enumerate(replace):
+                for index, replace_pref in enumerate(replace):
 
-                    start = initial_index + (period) * num_preferences_per_period + a
-                    end = initial_index + (period + 1) * num_preferences_per_period - 1
+                    # Find the range of preferences we gotta shift over
+                    start = initial_index + (period) * num_preferences_per_period + replace_pref
+                    end = initial_index + (period + 1) * num_preferences_per_period - 2
 
+                    # Shift over each preference, put the replaced one last
                     for pref in range(start, end):
-                        teacher[pref - 1] = teacher[pref]
+                        teacher[pref] = teacher[pref + 1]
 
-                
+                    # If there are any other preferences to replace, they were just shifted so we gotta fix that
                     for pref in range(index+1, len(replace)):
                         replace[pref] -= 1
 
+                    # Choose a random seminar, put it in, then remove it so it cant be selected again
                     randomval = random.randint(0, len(temp)-1)
                     teacher[initial_index + 4 + (period) * num_preferences_per_period] = temp[randomval]
+                    temp.pop(randomval)
         else:
             for pref in range(classes_per_period):
                 teacher[initial_index + period*num_preferences_per_period + pref] = "Presenting"
@@ -427,7 +444,7 @@ def main(period):
     # 0, number of classes, number of teachers, THEN the sink
     # 1 + num_classes + teacher_index
     # this should be the terminus
-    class_end_nodes = [num_classes + teacher_index + 1] * len(class_start_nodes) * 2
+    class_end_nodes = [num_classes + teacher_index + 1] * len(class_start_nodes)
 
     source_capacities = [1] * len(source_start_nodes)
     teacher_capacities = [1] * len(teacher_start_nodes)
@@ -466,8 +483,6 @@ def main(period):
 
     # Find the minimum cost flow between node 0 and node 10.
     smcf_status = smcf.solve()
-
-    
 
     if smcf_status == smcf.OPTIMAL:
         print("Total cost = ", smcf.optimal_cost())
@@ -556,9 +571,9 @@ def output():
                 os.mkdir(location + "\\SeminarAttendances")
             except FileExistsError:
                 pass
-            except PermissionError:
-                status.log("Could not create output folders")
-                return
+            except PermissionError as e:
+                # status.log("Could not create output folders")
+                raise e
             
             # status.log(f"Creating attendance for class {classes[i]} period {j+1}")
 
