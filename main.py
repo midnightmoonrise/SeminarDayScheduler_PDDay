@@ -59,6 +59,7 @@ schedules = []
 classes_reader = 0
 num_periods = 3
 num_preferences_per_period = 6
+min_per_class = 5
 
 seminars_by_period = [[] for _ in range(num_periods)]
 
@@ -137,7 +138,7 @@ def csv_processing():
 
         # writes emails in
         for teacher in teachertograde_reader: #teachertograde_reader just reads the teachernames CSV.
-            emailtoname[teacher[0]] = teacher[1]
+            emailtoname[teacher[0]] = teacher[1].strip()
             emails += [teacher[0]]
         print(emails)
 
@@ -309,7 +310,7 @@ def csv_processing():
 
 def main(period):
 
-    global preferences_csv, preferences_reader, classes, class_capacities, ordered_emails, emails, schedules, seminars_by_period
+    global preferences_csv, preferences_reader, classes, class_capacities, ordered_emails, emails, schedules, seminars_by_period, min_per_class
 
     """Solving an Assignment Problem with MinCostFlow."""
     # Instantiate a SimpleMinCostFlow solver.
@@ -345,8 +346,6 @@ def main(period):
     # for example: time, name, yes/no, CLASS 1 would be index 3
     initial_index = 3
 
-    min_per_class = 3
-
     
     
     # the malicious
@@ -368,6 +367,9 @@ def main(period):
 
     for teacher in preferences_reader:
 
+
+        if teacher[1] == "flemingb@doversherborn.org":
+            print()
         teacher_index += 1
         # create edge between source and teachers
         source_start_nodes += [0]
@@ -442,6 +444,8 @@ def main(period):
 
             teacher_costs += [weight * pref]
 
+        print()
+
     
 
     # 0, number of classes, number of teachers, THEN the sink
@@ -492,6 +496,9 @@ def main(period):
         print()
         for arc in range(smcf.num_arcs()):
 
+            if ordered_emails[smcf.tail(arc) - num_classes - 1] == "flemingb@doversherborn.org":
+                print()
+
             if smcf.flow(arc) > 0 and smcf.tail(arc) != source and smcf.head(arc) != sink:
 
                 if smcf.tail(arc) - num_classes - 1 >= len(emails):
@@ -511,7 +518,7 @@ def main(period):
 
 def output():
  
-    global ordered_emails, emails, num_periods, schedules, classes, master_list, output_directory, classes_csv, classes_reader
+    global ordered_emails, emails, num_periods, schedules, classes, master_list, output_directory, classes_csv, classes_reader, min_per_class
 
     location = output_directory
 
@@ -587,7 +594,7 @@ def output():
             names = deepcopy(master_list[class_id][period])
             for x, email in enumerate(names):
                 names[x] = emailtoname[email]
-            if len(names) < 5:
+            if len(names) < min_per_class:
                 too_empty_seminars.append(f"{classes[class_id]} Period {period+1}")
             f.write("\n".join(names))
             f.close()
