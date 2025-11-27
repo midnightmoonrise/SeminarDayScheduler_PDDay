@@ -3,3 +3,6 @@
 /build
 __pycache__
 /venv
+output
+Output\\SeminarAttendances
+Output\\teachers
