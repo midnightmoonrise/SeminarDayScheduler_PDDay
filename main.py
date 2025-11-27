@@ -52,6 +52,7 @@ with open("PD_CSV/roomlist.csv", newline='') as infile:
     for row in reader:
         roomCapacities[row["room"]] = row["capacity"]
 
+ordered_emails = []
 emails = []
 schedules = []
 
@@ -101,7 +102,7 @@ def reset():
 
 
 def csv_processing():
-    global num_periods, preferences_csv, preferences_reader, teachertograde, emailtoname, classes_csv, classes_reader, classes, class_capacities, emails, master_list, schedules, csv_file_paths, seminars_by_period
+    global num_periods, preferences_csv, preferences_reader, teachertograde, emailtoname, classes_csv, classes_reader, classes, class_capacities, ordered_emails, emails, master_list, schedules, csv_file_paths, seminars_by_period
 
     try:
         os.mkdir(output_directory)
@@ -179,6 +180,7 @@ def csv_processing():
         missing_teachers = deepcopy(emails)
         for teacher in preferences_reader:
             email = teacher[1]
+            ordered_emails.append(email)
             for x, s in enumerate(missing_teachers):
                 if s == email:
                     missing_teachers.pop(x)
@@ -197,9 +199,13 @@ def csv_processing():
             print(teacher)
             rows += [teacher]
         
+        print(ordered_emails)
+        print(f"Length: {len(ordered_emails)}")
         for email in missing_teachers:
 
             print("MISSING teacher:", email)
+
+            ordered_emails.append(email)
 
             teacher = ["time", email]
 
@@ -249,7 +255,7 @@ def csv_processing():
         # The below writes the prefs for the missing teachers, and the missing teachers ONLY.
         # rn it actually writes all of them, including updating any empty preferences after a "Yes" to "Presenting".
         # realistically this shold open to the same file that we read prefrences from
-        write_prefs = open("PD_CSV/small_testing_sample.csv", "wt", newline='')
+        write_prefs = open("PD_CSV/preferences_data.csv", "wt", newline='')
         preferences_writer = csv.writer(write_prefs)
         preferences_writer.writerows(rows)
         write_prefs.close()
@@ -300,7 +306,7 @@ def csv_processing():
 
 def main(period):
 
-    global preferences_csv, preferences_reader, classes, class_capacities, emails, schedules, seminars_by_period
+    global preferences_csv, preferences_reader, classes, class_capacities, ordered_emails, emails, schedules, seminars_by_period
 
     """Solving an Assignment Problem with MinCostFlow."""
     # Instantiate a SimpleMinCostFlow solver.
@@ -320,9 +326,9 @@ def main(period):
     class_start_nodes = [x+1 for x in range(num_classes)] * 2
 
     # tldr loop through this shit twice because of the two costs thingy
-
-    class_costs = [-10000000000] * num_classes
-    class_costs += [0] * num_classes
+    
+    class_costs = [0] * num_classes
+    class_costs += [-10000000000] * num_classes
     
     # priority to fill minimum
     
@@ -491,7 +497,7 @@ def main(period):
                 #     % (emails[smcf.tail(arc) - num_classes - 1], classes[smcf.head(arc) - 1], smcf.unit_cost(arc), smcf.flow(arc))
                 # )
                 schedules[period][smcf.tail(arc) - num_classes - 1] = smcf.head(arc) - 1
-                master_list[smcf.head(arc) - 1][period].append(emails[smcf.tail(arc) - num_classes - 1])
+                master_list[smcf.head(arc) - 1][period].append(ordered_emails[smcf.tail(arc) - num_classes - 1])
 
                 # print(master_list[0][period])
 
@@ -500,7 +506,7 @@ def main(period):
 
 def output():
  
-    global emails, num_periods, schedules, classes, master_list, output_directory, classes_csv, classes_reader
+    global ordered_emails, emails, num_periods, schedules, classes, master_list, output_directory, classes_csv, classes_reader
 
     location = output_directory
 
@@ -523,7 +529,7 @@ def output():
 
     for teacher_id in range(len(emails)):
 
-        name = emailtoname[emails[teacher_id]]
+        name = emailtoname[ordered_emails[teacher_id]]
 
         seminars = []
         for period in range(num_periods):
@@ -544,7 +550,7 @@ def output():
         # status.log("Creating schedule for teacher " + name)
         print("Creating schedule for " + name)
 
-        f = open(f"{location}\\teachers\\{name} Schedule.txt","w", newline='')
+        f = open(f"{location}\\teachers/{name} Schedule.txt","w", newline='')
         f.writelines(fin)
         f.close()
 
@@ -570,7 +576,7 @@ def output():
             
             # status.log(f"Creating attendance for class {classes[i]} period {j+1}")
 
-            f = open(f"{location}\\SeminarAttendances\\{classes[class_id].split('-')[0]}Period{period+1}.csv", "w")
+            f = open(f"{location}\\SeminarAttendances/{classes[class_id].split('-')[0]}Period{period+1}.csv", "w")
 
 
             names = deepcopy(master_list[class_id][period])
