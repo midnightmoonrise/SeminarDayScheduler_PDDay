@@ -146,6 +146,13 @@ def init(uploaded_csv_file_paths, uploaded_output_dir):
 
     csv_processing()
 
+output_directory = "Output"
+csv_file_paths = {
+    "prefs" : "C:\\Users\\danie\\Downloads\\CleanedStudentResponses.csv",
+    "grades" : "C:\\Users\\danie\\Downloads\\studentgradesandnames.csv",
+    "seminars" : "C:\\Users\\danie\\Downloads\\Copy of Seminar Day Presenter and Teacher Schedule 2025 - total thing (2).csv"
+}
+
 def reset():
     global preferences_csv, preferences_reader, studenttograde, emailtoname, total_emails, emails, schedules, classes_reader, num_periods, seminars_by_period, classes, class_capacities, master_list
 
@@ -350,8 +357,8 @@ def main(period):
 
     # tldr loop through this shit twice because of the two costs thingy
 
-    class_costs = [-10000000000] * num_classes
-    class_costs += [0] * num_classes
+    class_costs = [0] * num_classes
+    class_costs += [-10000000000] * num_classes
     
     # priority to fill minimum
     
@@ -362,9 +369,9 @@ def main(period):
 
     #index in the csv where periods start
     # for example: time, name, grade, CLASS 1 would be index 3
-    initial_index = 3
+    initial_index = 2
 
-    min_per_class = 1
+    min_per_class = 5
 
     
     
@@ -649,5 +656,7 @@ def output():
     status.log("Master Lists complete")
     #Identified by web interface to tell if completed
     status.log("Success")
+
+csv_processing()
 
     # emerson hirsch, daniel spilman, karn chutinan, serena baranello, selin gulden, amethyst xue, iris chen, ethan filip, cecilia ritchey, addison hirsch
