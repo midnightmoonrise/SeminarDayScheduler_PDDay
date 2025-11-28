@@ -182,7 +182,8 @@ def csv_processing():
             email = teacher[1]
             ordered_emails.append(email)
             for x, s in enumerate(missing_teachers):
-                if s == email:
+                print(s)
+                if s.strip() == email.strip():
                     missing_teachers.pop(x)
 
             # Populates the seminar "Presenting" in the blank spots for teachers who are presenting
@@ -227,21 +228,22 @@ def csv_processing():
             presenting_period_2 = ["Tom Duprey", "Toni Milbourn", "Andrew McCorkle", "Mike Sweeney", "Alex Carroll", "Addie Perez Krebs"]
             presenting_period_3 = ["Toni Milbourn", "Andrew McCorkle", "Phil Rodino", "Addie Perez Krebs"]
             # Add the Yes/No (No matters because the code to handle presenting checks for "No", not "Yes")
-            if emailtoname[teacher[1]] in presenting_period_1:
+            print(f"missing teacher email for testing: {teacher[1]}, and that is {emailtoname[teacher[1]]}")
+            if emailtoname[teacher[1]].strip() in presenting_period_1:
                 print(f"{emailtoname[teacher[1]]} is presenting period 1")
                 teacher[2] = "Yes"
                 for i in range(3,8):
                     teacher[i] = "Presenting"
             else:
                 teacher[2] = "No"
-            if emailtoname[teacher[1]] in presenting_period_2:
+            if emailtoname[teacher[1]].strip() in presenting_period_2:
                 print(f"{emailtoname[teacher[1]]} is presenting period 2")
                 teacher[8] = "Yes"
                 for i in range(9,14):
                     teacher[i] = "Presenting"
             else:
                 teacher[8] = "No"
-            if emailtoname[teacher[1]] in presenting_period_3:
+            if emailtoname[teacher[1]].strip() in presenting_period_3:
                 print(f"{emailtoname[teacher[1]]} is presenting period 3")
                 teacher[14] = "Yes"
                 for i in range(15,20):
@@ -259,7 +261,7 @@ def csv_processing():
         preferences_writer = csv.writer(write_prefs)
         preferences_writer.writerows(rows)
         write_prefs.close()
-
+        
         preferences_csv.seek(0)
 
         for period in range(num_periods):
@@ -550,7 +552,7 @@ def output():
         # status.log("Creating schedule for teacher " + name)
         print("Creating schedule for " + name)
 
-        f = open(f"{location}\\teachers/{name} Schedule.txt","w", newline='')
+        f = open(f"{location}\\teachers/{name.strip()} Schedule.txt","w", newline='')
         f.writelines(fin)
         f.close()
 

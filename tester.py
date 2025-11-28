@@ -81,58 +81,65 @@ import random
 # #             print("\n")
 
 # # Create something that will set all preferences to "Presenting" for someone who answered "yes"
-preferences = []
-with open("PD_CSV/small_testing_sample.csv", newline='') as infile:
-    reader = csv.reader(infile)
-    for row in reader:
-        preferences.append(row)
+# preferences = []
+# with open("PD_CSV/small_testing_sample.csv", newline='') as infile:
+#     reader = csv.reader(infile)
+#     for row in reader:
+#         preferences.append(row)
 
-for teacher_data in preferences:
-    if teacher_data[2] == "Yes":
-        for i in range(3,8):
-            teacher_data[i] = "Presenting"
-    if teacher_data[8] == "Yes":
-        for i in range(9,14):
-            teacher_data[i] = "Presenting"
-    if teacher_data[14] == "Yes":
-        for i in range(15,20):
-            teacher_data[i] = "Presenting"
+# for teacher_data in preferences:
+#     if teacher_data[2] == "Yes":
+#         for i in range(3,8):
+#             teacher_data[i] = "Presenting"
+#     if teacher_data[8] == "Yes":
+#         for i in range(9,14):
+#             teacher_data[i] = "Presenting"
+#     if teacher_data[14] == "Yes":
+#         for i in range(15,20):
+#             teacher_data[i] = "Presenting"
 
 # print(preferences[9])
 # # print(preferences)
 
 # Check for duplicate form fills!
-# temp_emailtoname = {}
-# with open("PD_CSV/teachernames.csv", newline='') as infile:
-#     reader = csv.reader(infile)
-#     for row in reader:
-#         try:
-#             print(temp_emailtoname[row[0].rstrip()])
-#             print(f"{row[0].rstrip()} filled out the form twice")
-#         except KeyError:
-#             temp_emailtoname[row[0].rstrip()] = row[1].rstrip()
+temp_emailtoname = {}
+with open("PD_CSV/teachernames.csv", newline='') as infile:
+    reader = csv.reader(infile)
+    for row in reader:
+        try:
+            print(temp_emailtoname[row[0].rstrip()])
+            print(f"{row[0].rstrip()} filled out the form twice")
+        except KeyError:
+            temp_emailtoname[row[0].rstrip()] = row[1].rstrip()
+
+# check why my missing teachers-presenters are wrong??
+presenting_period_1 = ["Tom Duprey", "Mike Sweeney", "Alex Carroll"]
+presenting_period_2 = ["Tom Duprey", "Toni Milbourn", "Andrew McCorkle", "Mike Sweeney", "Alex Carroll", "Addie Perez Krebs"]
+presenting_period_3 = ["Toni Milbourn", "Andrew McCorkle", "Phil Rodino", "Addie Perez Krebs"]
+print(temp_emailtoname["dupreyt@doversherborn.org"])
+print(temp_emailtoname["dupreyt@doversherborn.org"] in presenting_period_1)
 
 # Populate class list
 
-classes_csv = open("PD_CSV/seminar_roomassignments.csv")
-classes_reader = csv.reader(classes_csv)
-classes = []
-# fills in classes list. 
-for aclass in classes_reader:
-    print(aclass)
-    classes += [aclass[0]]
+# classes_csv = open("PD_CSV/seminar_roomassignments.csv")
+# classes_reader = csv.reader(classes_csv)
+# classes = []
+# # fills in classes list. 
+# for aclass in classes_reader:
+#     print(aclass)
+#     classes += [aclass[0]]
 
 # What's wrong with mrs. Memmott's seminar? 
 
-for teacher in preferences: 
-    if teacher[1] != "levasseurc@doversherborn.org": 
-        continue
-    else: 
-        for x in teacher[2:]:
-            print(x)
-            print(x in classes)
-            print(f"It is {teacher[7].strip() == classes[6].strip()}")
-            print(teacher[7])
-            print(classes[6])
+# for teacher in preferences: 
+#     if teacher[1] != "levasseurc@doversherborn.org": 
+#         continue
+#     else: 
+#         for x in teacher[2:]:
+#             print(x)
+#             print(x in classes)
+#             print(f"It is {teacher[7].strip() == classes[6].strip()}")
+#             print(teacher[7])
+#             print(classes[6])
 
 # classes[6] is wendy rush and mary memmott
