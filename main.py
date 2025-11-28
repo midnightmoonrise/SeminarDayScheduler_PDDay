@@ -185,18 +185,6 @@ def csv_processing():
                 print(s)
                 if s.strip() == email.strip():
                     missing_teachers.pop(x)
-
-            # Populates the seminar "Presenting" in the blank spots for teachers who are presenting
-            if teacher[2] == "Yes":
-                for i in range(3,8):
-                    teacher[i] = "Presenting"
-            if teacher[8] == "Yes":
-                for i in range(9,14):
-                    teacher[i] = "Presenting"
-            if teacher[14] == "Yes":
-                for i in range(15,20):
-                    teacher[i] = "Presenting"
-
             print(teacher)
             rows += [teacher]
         
@@ -224,9 +212,9 @@ def csv_processing():
                         sem
                     )
             # Casework for when missing teachers are presenting.
-            presenting_period_1 = ["Tom Duprey", "Mike Sweeney", "Alex Carroll"]
-            presenting_period_2 = ["Tom Duprey", "Toni Milbourn", "Andrew McCorkle", "Mike Sweeney", "Alex Carroll", "Addie Perez Krebs"]
-            presenting_period_3 = ["Toni Milbourn", "Andrew McCorkle", "Phil Rodino", "Addie Perez Krebs"]
+            presenting_period_1 = ["Tom Duprey", "Mike Sweeney", "Alex Carroll", "Amanda Lydon"]
+            presenting_period_2 = ["Tom Duprey", "Toni Milbourn", "Andrew McCorkle", "Mike Sweeney", "Alex Carroll", "Addie Perez Krebs", "Amanda Lydon"]
+            presenting_period_3 = ["Toni Milbourn", "Andrew McCorkle", "Phil Rodino", "Addie Perez Krebs", "Amanda Lydon"]
             # Add the Yes/No (No matters because the code to handle presenting checks for "No", not "Yes")
             print(f"missing teacher email for testing: {teacher[1]}, and that is {emailtoname[teacher[1]]}")
             if emailtoname[teacher[1]].strip() in presenting_period_1:
@@ -261,7 +249,7 @@ def csv_processing():
         preferences_writer = csv.writer(write_prefs)
         preferences_writer.writerows(rows)
         write_prefs.close()
-        
+
         preferences_csv.seek(0)
 
         for period in range(num_periods):

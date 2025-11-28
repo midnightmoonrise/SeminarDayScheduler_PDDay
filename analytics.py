@@ -49,9 +49,10 @@ for email, name in emailtoname:
                     break
                 else:
                     score -= base + 1      
-
+        if score < 15:
+            print(f"{name} did not get all first choices.")
         if score < 0:
-            print(name)
+            print(f"{name} got a score of less than 0.")
 
         scores.append(score)     
 
