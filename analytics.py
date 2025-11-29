@@ -51,7 +51,7 @@ for email, name in emailtoname:
                     score -= base + 1      
 
         if score < 0:
-            print(name)
+            print(name, score)
 
         scores.append(score)     
 
