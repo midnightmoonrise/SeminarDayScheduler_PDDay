@@ -185,6 +185,18 @@ def csv_processing():
                 print(s)
                 if s.strip() == email.strip():
                     missing_teachers.pop(x)
+
+            # Populates the seminar "Presenting" in the blank spots for teachers who are presenting
+            if teacher[2] == "Yes":
+                for i in range(3,8):
+                    teacher[i] = "Presenting"
+            if teacher[8] == "Yes":
+                for i in range(9,14):
+                    teacher[i] = "Presenting"
+            if teacher[14] == "Yes":
+                for i in range(15,20):
+                    teacher[i] = "Presenting"
+
             print(teacher)
             rows += [teacher]
         
@@ -249,7 +261,7 @@ def csv_processing():
         preferences_writer = csv.writer(write_prefs)
         preferences_writer.writerows(rows)
         write_prefs.close()
-
+        
         preferences_csv.seek(0)
 
         for period in range(num_periods):
