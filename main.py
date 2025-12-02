@@ -77,6 +77,13 @@ def init(uploaded_csv_file_paths, uploaded_output_dir):
 
     csv_processing()
 
+output_directory = "Output"
+csv_file_paths = {
+    "prefs" : "C:\\Users\\danie\\Downloads\\CleanedStudentResponses.csv",
+    "grades" : "C:\\Users\\danie\\Downloads\\studentgradesandnames.csv",
+    "seminars" : "C:\\Users\\danie\\Downloads\\Copy of Seminar Day Presenter and Teacher Schedule 2025 - total thing (2).csv"
+}
+
 def reset():
     global preferences_csv, preferences_reader, teachertograde, emailtoname, emails, schedules, classes_reader, num_periods, seminars_by_period, classes, class_capacities, master_list
 
